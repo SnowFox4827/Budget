@@ -71,6 +71,12 @@ budget_app/
    ```
 4. **Access app:** Open `http://localhost:5000` in your web browser.
 
+> **Changing the Port:**
+> To run on a different port locally (e.g., `8080`), edit the bottom of `app.py`:
+> ```python
+> app.run(host='0.0.0.0', port=8080, debug=True)
+> ```
+
 ---
 
 ### Option 2: Running with Docker
@@ -84,6 +90,13 @@ budget_app/
    ```bash
    docker compose down
    ```
+
+> **Changing the Port in Docker:**
+> To expose the app on a different host port (e.g., access via `http://localhost:8080`), update the `ports` section in `docker-compose.yml`:
+> ```yaml
+> ports:
+>   - "8080:5000"   # "HOST_PORT:CONTAINER_PORT"
+> ```
 
 ---
 
