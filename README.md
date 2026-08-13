@@ -37,6 +37,7 @@ A modern, dark-themed zero-based envelope budgeting web application built with *
 ```
 budget_app/
 ├── app.py                  # Flask backend & SQLite API endpoints
+├── requirements.txt        # Python package dependencies
 ├── data/
 │   └── budget.db           # SQLite database stored in data/ folder
 ├── Dockerfile              # Docker container definition
@@ -62,7 +63,7 @@ budget_app/
 1. **Prerequisites:** Python 3.8+ installed.
 2. **Install dependencies:**
    ```bash
-   pip install flask
+   pip install -r requirements.txt
    ```
 3. **Run application:**
    ```bash
@@ -74,11 +75,15 @@ budget_app/
 
 ### Option 2: Running with Docker
 
-1. **Build and start container:**
+1. **Build and start container in detached mode:**
    ```bash
-   docker compose up --build
+   docker compose up -d --build
    ```
 2. **Access app:** Open `http://localhost:5000` in your web browser.
+3. **Stop container:**
+   ```bash
+   docker compose down
+   ```
 
 ---
 
