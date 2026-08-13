@@ -89,4 +89,4 @@ budget_app/
 
 ## License
 
-MIT License
+Personal Homelab Use
