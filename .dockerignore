@@ -1,0 +1,33 @@
+# Git
+.git/
+.gitignore
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+
+# Data directory & SQLite Database (mounted via volume instead)
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentation & Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+README.md
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
