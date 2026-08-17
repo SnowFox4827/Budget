@@ -72,10 +72,38 @@
                         <option value="">All Accounts</option>
                     </select>
                 </div>
-                <button class="btn btn-sm btn-outline-primary" onclick="showAddAllocationModal()"><i class="bi bi-plus-lg"></i> Add Allocation</button>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="View toggle">
+                        <button class="btn btn-outline-secondary" id="alloc-view-grid" title="Card view" onclick="setAllocationView('grid')"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+                        <button class="btn btn-outline-secondary" id="alloc-view-list" title="List view" onclick="setAllocationView('list')"><i class="bi bi-list-ul"></i></button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showAddAllocationModal()"><i class="bi bi-plus-lg"></i> Add Allocation</button>
+                </div>
             </div>
             <div class="row g-3" id="allocations-container">
                 <!-- Dynamic Allocation Cards -->
+            </div>
+            <div class="card border-0 shadow-sm" id="allocations-table-wrap">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Account</th>
+                                    <th class="text-end">Available</th>
+                                    <th class="text-end">Goal</th>
+                                    <th style="min-width:140px;">Progress</th>
+                                    <th>Target Date</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allocations-list">
+                                <!-- Dynamic Allocation Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -83,10 +111,36 @@
         <div class="tab-pane fade" id="accounts-sec">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold m-0">Accounts</h5>
-                <button class="btn btn-sm btn-outline-primary" onclick="showAddAccountModal()"><i class="bi bi-plus-lg"></i> Add Account</button>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="View toggle">
+                        <button class="btn btn-outline-secondary" id="acc-view-grid" title="Card view" onclick="toggleAccountView('grid')"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+                        <button class="btn btn-outline-secondary" id="acc-view-list" title="List view" onclick="toggleAccountView('list')"><i class="bi bi-list-ul"></i></button>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showAddAccountModal()"><i class="bi bi-plus-lg"></i> Add Account</button>
+                </div>
             </div>
             <div class="row g-3" id="accounts-container">
                 <!-- Dynamic Account Cards -->
+            </div>
+            <div class="card border-0 shadow-sm" id="accounts-list-wrap">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th class="text-end">Balance</th>
+                                    <th class="text-end">Allocated</th>
+                                    <th class="text-end">Unassigned</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accounts-list">
+                                <!-- Dynamic Account Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 

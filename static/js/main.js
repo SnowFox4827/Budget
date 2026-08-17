@@ -1,8 +1,12 @@
 let state = { accounts: [], allocations: [], transactions: [] };
 let pendingTxData = null;
+let allocationView = 'grid';
+let accountView = 'grid';
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
+    setAllocationView('grid');
+    toggleAccountView('grid');
     fetchDashboard();
 
     // Event Listeners
@@ -67,6 +71,22 @@ function renderAccounts() {
             </div>
         </div>
     `).join('') || '<p class="text-muted">No accounts added yet.</p>';
+
+    const tbody = document.getElementById('accounts-list');
+    tbody.innerHTML = state.accounts.map(acc => `
+        <tr>
+            <td class="fw-semibold">${acc.name}</td>
+            <td class="text-end fw-bold text-primary">$${acc.balance.toFixed(2)}</td>
+            <td class="text-end text-dark">$${acc.allocated.toFixed(2)}</td>
+            <td class="text-end fw-semibold ${acc.unassigned < 0 ? 'text-danger' : 'text-success'}">$${acc.unassigned.toFixed(2)}</td>
+            <td class="text-center">
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-link text-primary btn-sm p-0" onclick="showEditAccountNameModal(${acc.id})" title="Edit Account Name"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteAccount(${acc.id})" title="Delete Account"><i class="bi bi-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('') || '<tr><td colspan="5" class="text-center text-muted py-3">No accounts added yet.</td></tr>';
 }
 
 function renderAllocations() {
@@ -104,6 +124,58 @@ function renderAllocations() {
             </div>
         `;
     }).join('') || '<p class="text-muted">No allocations found for this filter.</p>';
+
+    const tbody = document.getElementById('allocations-list');
+    tbody.innerHTML = filteredAllocations.map(al => {
+        let pct = al.target_amount > 0 ? Math.min(100, Math.round((al.amount_available / al.target_amount) * 100)) : 0;
+        return `
+            <tr>
+                <td class="fw-semibold">${al.name}</td>
+                <td><span class="badge bg-light text-dark">${al.account_name || 'Unassigned Acc'}</span></td>
+                <td class="text-end fw-bold text-dark">$${al.amount_available.toFixed(2)}</td>
+                <td class="text-end text-muted">$${al.target_amount.toFixed(2)}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="progress flex-grow-1" style="height: 8px;">
+                            <div class="progress-bar ${pct >= 100 ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${pct}%"></div>
+                        </div>
+                        <span class="small text-muted">${pct}%</span>
+                    </div>
+                </td>
+                <td class="small">${al.target_date || '-'}</td>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-link text-primary btn-sm p-0" onclick="showEditAllocationModal(${al.id})" title="Edit Allocation"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteAllocation(${al.id})" title="Delete Allocation"><i class="bi bi-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('') || '<tr><td colspan="7" class="text-center text-muted py-3">No allocations found for this filter.</td></tr>';
+
+    applyAllocationView();
+}
+
+// --- View toggles ---
+function setAllocationView(view) {
+    allocView = view;
+    document.getElementById('alloc-view-grid').classList.toggle('active', view === 'grid');
+    document.getElementById('alloc-view-list').classList.toggle('active', view === 'list');
+    applyAllocationView();
+}
+
+function applyAllocationView() {
+    const grid = allocView === 'grid';
+    document.getElementById('allocations-container').style.display = grid ? '' : 'none';
+    document.getElementById('allocations-table-wrap').style.display = grid ? 'none' : '';
+}
+
+function toggleAccountView(view) {
+    accountView = view;
+    document.getElementById('acc-view-grid').classList.toggle('active', view === 'grid');
+    document.getElementById('acc-view-list').classList.toggle('active', view === 'list');
+    document.getElementById('accounts-container').style.display = view === 'grid' ? '' : 'none';
+    document.getElementById('accounts-list-wrap').style.display = view === 'grid' ? 'none' : '';
 }
 
 function renderTransactions() {
