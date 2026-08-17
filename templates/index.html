@@ -4,220 +4,175 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Budget Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+<div class="container">
 
-<div class="container py-4">
-    <!-- Header Summary -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="flex between wrap gap-2 mb-4">
         <div>
-            <h2 class="fw-bold m-0"><i class="bi bi-wallet2 text-primary me-2"></i>Budget App</h2>
-            <p class="text-muted small m-0">Zero-Based Envelope Allocation System</p>
+            <h1 class="page-title m-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M0 3a2 2 0 0 1 2-2h13.5a.5.5 0 0 1 0 1H15v2a1 1 0 0 0 1 1v2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v2a1 1 0 0 0-1 1v2h-1.5a.5.5 0 0 1 0 1H2a2 2 0 0 1-2-2V3z"/></svg>
+                Budget App
+            </h1>
+            <p class="subtitle m-0">Zero-Based Envelope Allocation System</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-sm" onclick="showAddTransactionModal()"><i class="bi bi-plus-circle me-1"></i> New Transaction</button>
-            <button class="btn btn-outline-secondary btn-sm" onclick="showTransferModal()"><i class="bi bi-arrow-left-right me-1"></i> Reallocate Funds</button>
+        <div class="flex gap-2">
+                <button class="btn btn-primary btn-sm" onclick="showAddTransactionModal()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> New Transaction</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="showTransferModal()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1 8a.5.5 0 0 1 .5-.5h11.793l-6.147-6.146a.5.5 0 1 1 .708-.708l7 7a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/></svg> Reallocate Funds</button>
         </div>
     </div>
 
     <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card card-stat bg-white shadow-sm p-3 border-start border-primary border-4">
-                <div class="text-muted small fw-semibold text-uppercase">Total Net Worth</div>
-                <div class="h3 fw-bold text-dark my-1" id="sum-networth">$0.00</div>
-                <div class="text-muted extra-small">Across all accounts</div>
-            </div>
+    <div class="stat-cards">
+        <div class="stat-card border-blue">
+            <div class="stat-label">Total Net Worth</div>
+            <div class="stat-value blue" id="sum-networth">$0.00</div>
+            <div class="stat-sub">Across all accounts</div>
         </div>
-        <div class="col-md-4">
-            <div class="card card-stat bg-white shadow-sm p-3 border-start border-success border-4">
-                <div class="text-muted small fw-semibold text-uppercase">Total Allocated</div>
-                <div class="h3 fw-bold text-success my-1" id="sum-allocated">$0.00</div>
-                <div class="text-muted extra-small">Assigned to goals & envelopes</div>
-            </div>
+        <div class="stat-card border-green">
+            <div class="stat-label">Total Allocated</div>
+            <div class="stat-value green" id="sum-allocated">$0.00</div>
+            <div class="stat-sub">Assigned to goals &amp; envelopes</div>
         </div>
-        <div class="col-md-4">
-            <div class="card card-stat bg-white shadow-sm p-3 border-start border-warning border-4">
-                <div class="text-muted small fw-semibold text-uppercase">Unassigned Dollars</div>
-                <div class="h3 fw-bold text-warning my-1" id="sum-unassigned">$0.00</div>
-                <div class="text-muted extra-small">Ready to be allocated</div>
-            </div>
+        <div class="stat-card border-yellow">
+            <div class="stat-label">Unassigned Dollars</div>
+            <div class="stat-value yellow" id="sum-unassigned">$0.00</div>
+            <div class="stat-sub">Ready to be allocated</div>
         </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <ul class="nav nav-pills mb-3" id="budgetTabs" role="tablist">
-        <li class="nav-item">
-            <button class="nav-link active" id="allocations-tab" data-bs-toggle="tab" data-bs-target="#allocations-sec" type="button"><i class="bi bi-pie-chart me-1"></i> Allocations</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts-sec" type="button"><i class="bi bi-bank me-1"></i> Accounts</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions-sec" type="button"><i class="bi bi-list-ul me-1"></i> Transactions</button>
-        </li>
-    </ul>
+    <div class="nav-pills" role="tablist">
+        <button class="tab-btn active" data-tab="allocations-sec" onclick="switchTab('allocations-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M11 6.5a.5.5 0 0 1 .5.5 4 4 0 0 1-4 4 .5.5 0 0 1 0-1 3 3 0 0 0 3-3 .5.5 0 0 1 .5-.5z"/><path d="M0 0h16v16H0z" fill="none"/><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm.5 3a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z"/></svg> Allocations</button>
+        <button class="tab-btn" data-tab="accounts-sec" onclick="switchTab('accounts-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2 8.5a.5.5 0 0 1 .5-.5h.5v-1h1v1h1v-1h1v1h1v-1h1v1h1v-1h1v1h.5a.5.5 0 0 1 0 1H3.5V9a.5.5 0 0 1 0-1zM16 6a2 2 0 0 1-2-2 2 2 0 0 0-2-2 2 2 0 0 0-2 2H6V6H4.5A.5.5 0 0 0 4 6.5V8h8V6.5a.5.5 0 0 0-.5-.5H10V4h2a2 2 0 0 1 2 2h2z"/></svg> Accounts</button>
+        <button class="tab-btn" data-tab="transactions-sec" onclick="switchTab('transactions-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg> Transactions</button>
+    </div>
 
-    <div class="tab-content" id="budgetTabsContent">
-        
-        <!-- ALLOCATIONS SECTION -->
-        <div class="tab-pane fade show active" id="allocations-sec">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex align-items-center gap-3">
-                    <h5 class="fw-bold m-0">Allocations & Envelopes</h5>
-                    <select class="form-select form-select-sm" id="alloc-account-filter" style="width: auto;">
-                        <option value="">All Accounts</option>
+    <!-- ALLOCATIONS SECTION -->
+    <div class="tab-pane active" id="allocations-sec">
+        <div class="section-head">
+            <div class="left">
+                <h5 class="section-title m-0">Allocations &amp; Envelopes</h5>
+                <select id="alloc-account-filter">
+                    <option value="">All Accounts</option>
+                </select>
+            </div>
+            <div class="right">
+                <div class="toggle-group">
+                    <button type="button" class="toggle-btn" id="alloc-view-grid" title="Card view" onclick="setAllocationView('grid')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm8 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V2zM1 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-4zm8 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4z"/></svg></button>
+                    <button type="button" class="toggle-btn" id="alloc-view-list" title="List view" onclick="setAllocationView('list')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg></button>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" onclick="showAddAllocationModal()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Allocation</button>
+            </div>
+        </div>
+        <div class="cards-grid" id="allocations-container">
+            <!-- Dynamic Allocation Cards -->
+        </div>
+        <div class="table-wrap" id="allocations-table-wrap" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Account</th>
+                        <th class="text-end">Available</th>
+                        <th class="text-end">Goal</th>
+                        <th style="min-width:140px;">Progress</th>
+                        <th>Target Date</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="allocations-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ACCOUNTS SECTION -->
+    <div class="tab-pane" id="accounts-sec">
+        <div class="section-head">
+            <div class="left">
+                <h5 class="section-title m-0">Accounts</h5>
+            </div>
+            <div class="right">
+                <div class="toggle-group">
+                    <button type="button" class="toggle-btn" id="acc-view-grid" title="Card view" onclick="toggleAccountView('grid')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M1 2a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm8 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V2zM1 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-4zm8 0a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4z"/></svg></button>
+                    <button type="button" class="toggle-btn" id="acc-view-list" title="List view" onclick="toggleAccountView('list')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg></button>
+                </div>
+                <button class="btn btn-sm btn-outline-primary" onclick="showAddAccountModal()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Add Account</button>
+            </div>
+        </div>
+        <div class="cards-grid" id="accounts-container">
+            <!-- Dynamic Account Cards -->
+        </div>
+        <div class="table-wrap" id="accounts-list-wrap" style="display:none;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th class="text-end">Balance</th>
+                        <th class="text-end">Allocated</th>
+                        <th class="text-end">Unassigned</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="accounts-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TRANSACTIONS SECTION -->
+    <div class="tab-pane" id="transactions-sec">
+        <div class="table-wrap">
+            <div class="card-body">
+                <div class="filters">
+                    <input type="text" id="slice-search" placeholder="Search description...">
+                    <select id="slice-account"><option value="">All Accounts</option></select>
+                    <select id="slice-allocation"><option value="">All Allocations</option></select>
+                    <select id="slice-type">
+                        <option value="">All Types</option>
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                        <option value="transfer">Transfer</option>
                     </select>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="btn-group btn-group-sm" role="group" aria-label="View toggle">
-                        <button class="btn btn-outline-secondary" id="alloc-view-grid" title="Card view" onclick="setAllocationView('grid')"><i class="bi bi-grid-3x3-gap-fill"></i></button>
-                        <button class="btn btn-outline-secondary" id="alloc-view-list" title="List view" onclick="setAllocationView('list')"><i class="bi bi-list-ul"></i></button>
-                    </div>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showAddAllocationModal()"><i class="bi bi-plus-lg"></i> Add Allocation</button>
-                </div>
-            </div>
-            <div class="row g-3" id="allocations-container">
-                <!-- Dynamic Allocation Cards -->
-            </div>
-            <div class="card border-0 shadow-sm" id="allocations-table-wrap">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Account</th>
-                                    <th class="text-end">Available</th>
-                                    <th class="text-end">Goal</th>
-                                    <th style="min-width:140px;">Progress</th>
-                                    <th>Target Date</th>
-                                    <th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="allocations-list">
-                                <!-- Dynamic Allocation Rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Account</th>
+                            <th>Allocation</th>
+                            <th>Type</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-list"></tbody>
+                </table>
             </div>
         </div>
-
-        <!-- ACCOUNTS SECTION -->
-        <div class="tab-pane fade" id="accounts-sec">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0">Accounts</h5>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="btn-group btn-group-sm" role="group" aria-label="View toggle">
-                        <button class="btn btn-outline-secondary" id="acc-view-grid" title="Card view" onclick="toggleAccountView('grid')"><i class="bi bi-grid-3x3-gap-fill"></i></button>
-                        <button class="btn btn-outline-secondary" id="acc-view-list" title="List view" onclick="toggleAccountView('list')"><i class="bi bi-list-ul"></i></button>
-                    </div>
-                    <button class="btn btn-sm btn-outline-primary" onclick="showAddAccountModal()"><i class="bi bi-plus-lg"></i> Add Account</button>
-                </div>
-            </div>
-            <div class="row g-3" id="accounts-container">
-                <!-- Dynamic Account Cards -->
-            </div>
-            <div class="card border-0 shadow-sm" id="accounts-list-wrap">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Name</th>
-                                    <th class="text-end">Balance</th>
-                                    <th class="text-end">Allocated</th>
-                                    <th class="text-end">Unassigned</th>
-                                    <th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="accounts-list">
-                                <!-- Dynamic Account Rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TRANSACTIONS SECTION -->
-        <div class="tab-pane fade" id="transactions-sec">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <!-- Slicers / Filters -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-3">
-                            <input type="text" class="form-control form-control-sm" id="slice-search" placeholder="Search description...">
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select form-select-sm" id="slice-account">
-                                <option value="">All Accounts</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select form-select-sm" id="slice-allocation">
-                                <option value="">All Allocations</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select form-select-sm" id="slice-type">
-                                <option value="">All Types</option>
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                                <option value="transfer">Transfer</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Description</th>
-                                    <th>Account</th>
-                                    <th>Allocation</th>
-                                    <th>Type</th>
-                                    <th class="text-end">Amount</th>
-                                    <th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="transactions-list">
-                                <!-- Dynamic Transactions -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 </div>
 
 <!-- MODALS -->
 
-<!-- Add Account Modal -->
-<div class="modal fade" id="accountModal" tabindex="-1">
+<!-- Add/Edit Account Modal -->
+<div class="modal" id="accountModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">New Account</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" onclick="closeModal('accountModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="accountForm">
-                    <div class="mb-3">
-                        <label class="form-label">Account Name</label>
-                        <input type="text" id="acc-name" class="form-control" placeholder="e.g. Checking Account" required>
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="acc-name" placeholder="e.g. Checking Account" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Initial Balance ($)</label>
-                        <input type="number" step="0.01" id="acc-balance" class="form-control" value="0.00" required>
+                    <div class="form-group">
+                        <label>Initial Balance ($)</label>
+                        <input type="number" step="0.01" id="acc-balance" value="0.00" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Save Account</button>
                 </form>
@@ -227,19 +182,19 @@
 </div>
 
 <!-- Edit Account Name Modal -->
-<div class="modal fade" id="editAccountModal" tabindex="-1">
+<div class="modal" id="editAccountModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Edit Account Name</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" onclick="closeModal('editAccountModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="editAccountForm">
                     <input type="hidden" id="edit-acc-id">
-                    <div class="mb-3">
-                        <label class="form-label">Account Name</label>
-                        <input type="text" id="edit-acc-name" class="form-control" required>
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <input type="text" id="edit-acc-name" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Update Name</button>
                 </form>
@@ -249,35 +204,35 @@
 </div>
 
 <!-- Add/Edit Allocation Modal -->
-<div class="modal fade" id="allocationModal" tabindex="-1">
+<div class="modal" id="allocationModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="allocationModalTitle">New Allocation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" onclick="closeModal('allocationModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="allocationForm">
                     <input type="hidden" id="alloc-id">
-                    <div class="mb-3">
-                        <label class="form-label">Allocation Name</label>
-                        <input type="text" id="alloc-name" class="form-control" placeholder="e.g. Rent, Groceries, Vacation" required>
+                    <div class="form-group">
+                        <label>Allocation Name</label>
+                        <input type="text" id="alloc-name" placeholder="e.g. Rent, Groceries, Vacation" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Target Amount ($)</label>
-                        <input type="number" step="0.01" id="alloc-target" class="form-control" value="0.00" required>
+                    <div class="form-group">
+                        <label>Target Amount ($)</label>
+                        <input type="number" step="0.01" id="alloc-target" value="0.00" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount Currently Available ($)</label>
-                        <input type="number" step="0.01" id="alloc-avail" class="form-control" value="0.00" required>
+                    <div class="form-group">
+                        <label>Amount Currently Available ($)</label>
+                        <input type="number" step="0.01" id="alloc-avail" value="0.00" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Target Date</label>
-                        <input type="date" id="alloc-date" class="form-control">
+                    <div class="form-group">
+                        <label>Target Date</label>
+                        <input type="date" id="alloc-date">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Associated Account</label>
-                        <select id="alloc-account-select" class="form-select" required></select>
+                    <div class="form-group">
+                        <label>Associated Account</label>
+                        <select id="alloc-account-select" required></select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Save Allocation</button>
                 </form>
@@ -287,42 +242,42 @@
 </div>
 
 <!-- Add/Edit Transaction Modal -->
-<div class="modal fade" id="transactionModal" tabindex="-1">
+<div class="modal" id="transactionModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="transactionModalTitle">Log Transaction</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" onclick="closeModal('transactionModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="transactionForm">
                     <input type="hidden" id="trans-id">
-                    <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <select id="trans-type" class="form-select" onchange="toggleTransType()">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="trans-type" onchange="toggleTransType()">
                             <option value="expense">Expense (-)</option>
                             <option value="income">Income (+)</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input type="text" id="trans-desc" class="form-control" placeholder="e.g. Coffee shop, Paycheck" required>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="trans-desc" placeholder="e.g. Coffee shop, Paycheck" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount ($)</label>
-                        <input type="number" step="0.01" id="trans-amount" class="form-control" placeholder="0.00" required>
+                    <div class="form-group">
+                        <label>Amount ($)</label>
+                        <input type="number" step="0.01" id="trans-amount" placeholder="0.00" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Date</label>
-                        <input type="date" id="trans-date" class="form-control" required>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="trans-date" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Account</label>
-                        <select id="trans-account-select" class="form-select" required></select>
+                    <div class="form-group">
+                        <label>Account</label>
+                        <select id="trans-account-select" required></select>
                     </div>
-                    <div class="mb-3" id="trans-alloc-wrapper">
-                        <label class="form-label">Allocation / Envelope</label>
-                        <select id="trans-alloc-select" class="form-select"></select>
+                    <div class="form-group" id="trans-alloc-wrapper">
+                        <label>Allocation / Envelope</label>
+                        <select id="trans-alloc-select"></select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Save Transaction</button>
                 </form>
@@ -332,51 +287,51 @@
 </div>
 
 <!-- Overspend Resolution Modal -->
-<div class="modal fade" id="overspendModal" tabindex="-1">
+<div class="modal" id="overspendModal">
     <div class="modal-dialog">
-        <div class="modal-content border-danger">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Overspend Warning</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content danger">
+            <div class="modal-header danger">
+                <h5 class="modal-title"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1 1 15h14L8 1zm0 3 1 7H7l1-7zm0 9.5a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>Overspend Warning</h5>
+                <button type="button" class="btn-close white" onclick="closeModal('overspendModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <p id="overspend-msg" class="fw-semibold"></p>
-                <p class="text-muted small">Please select where to cover the remaining shortfall from:</p>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Cover Shortfall From</label>
-                    <select id="overspend-cover-select" class="form-select"></select>
+                <p id="overspend-msg" class="overspend-msg"></p>
+                <p class="overspend-note">Please select where to cover the remaining shortfall from:</p>
+                <div class="form-group">
+                    <label>Cover Shortfall From</label>
+                    <select id="overspend-cover-select"></select>
                 </div>
-                <button type="button" class="btn btn-danger w-100" onclick="resolveOverspend()">Confirm & Complete Transaction</button>
+                <button type="button" class="btn btn-danger w-100" onclick="resolveOverspend()">Confirm &amp; Complete Transaction</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Reallocate / Transfer Modal -->
-<div class="modal fade" id="transferModal" tabindex="-1">
+<div class="modal" id="transferModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Reallocate / Move Funds</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" onclick="closeModal('transferModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="transferForm">
-                    <div class="mb-3">
-                        <label class="form-label">Account</label>
-                        <select id="transfer-acc-select" class="form-select" onchange="populateTransferEnvelopes()" required></select>
+                    <div class="form-group">
+                        <label>Account</label>
+                        <select id="transfer-acc-select" onchange="populateTransferEnvelopes()" required></select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Move From</label>
-                        <select id="transfer-from-select" class="form-select" required></select>
+                    <div class="form-group">
+                        <label>Move From</label>
+                        <select id="transfer-from-select" required></select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Move To</label>
-                        <select id="transfer-to-select" class="form-select" required></select>
+                    <div class="form-group">
+                        <label>Move To</label>
+                        <select id="transfer-to-select" required></select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount ($)</label>
-                        <input type="number" step="0.01" id="transfer-amount" class="form-control" placeholder="0.00" required>
+                    <div class="form-group">
+                        <label>Amount ($)</label>
+                        <input type="number" step="0.01" id="transfer-amount" placeholder="0.00" required>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Complete Reallocation</button>
                 </form>
@@ -385,7 +340,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

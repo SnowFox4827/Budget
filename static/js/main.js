@@ -3,6 +3,11 @@ let pendingTxData = null;
 let allocationView = 'grid';
 let accountView = 'grid';
 
+const ICONS = {
+    edit: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207z"/></svg>',
+    trash: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.117 4 4.5 16.5a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5L11.883 4z"/></svg>'
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
     setAllocationView('grid');
@@ -24,6 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('transactionForm').addEventListener('submit', handleTransactionSubmit);
     document.getElementById('transferForm').addEventListener('submit', handleTransferSubmit);
 });
+
+// ---------- Tabs ----------
+function switchTab(id) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === id));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+}
+
+// ---------- Modals ----------
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 async function fetchDashboard() {
     const res = await fetch('/api/dashboard');
@@ -48,26 +63,18 @@ function renderSummary() {
 function renderAccounts() {
     const container = document.getElementById('accounts-container');
     container.innerHTML = state.accounts.map(acc => `
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="fw-bold mb-0">${acc.name}</h5>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-link text-primary btn-sm p-0" onclick="showEditAccountNameModal(${acc.id})" title="Edit Account Name"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteAccount(${acc.id})" title="Delete Account"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </div>
-                    <div class="h4 text-primary fw-bold mb-3">$${acc.balance.toFixed(2)}</div>
-                    <div class="d-flex justify-content-between small text-muted mb-1">
-                        <span>Allocated:</span>
-                        <span class="fw-semibold text-dark">$${acc.allocated.toFixed(2)}</span>
-                    </div>
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>Unassigned:</span>
-                        <span class="fw-semibold ${acc.unassigned < 0 ? 'text-danger' : 'text-success'}">$${acc.unassigned.toFixed(2)}</span>
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="flex between mb-2">
+                    <h5 class="fw-bold m-0">${acc.name}</h5>
+                    <div class="flex gap-2">
+                        <button class="btn-link text-primary" onclick="showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
+                        <button class="btn-link text-danger" onclick="deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>
                     </div>
                 </div>
+                <div class="acc-balance">$${acc.balance.toFixed(2)}</div>
+                <div class="acc-row"><span>Allocated:</span><span class="value">$${acc.allocated.toFixed(2)}</span></div>
+                <div class="acc-row"><span>Unassigned:</span><span class="value ${acc.unassigned < 0 ? 'neg' : 'pos'}">$${acc.unassigned.toFixed(2)}</span></div>
             </div>
         </div>
     `).join('') || '<p class="text-muted">No accounts added yet.</p>';
@@ -80,13 +87,13 @@ function renderAccounts() {
             <td class="text-end text-dark">$${acc.allocated.toFixed(2)}</td>
             <td class="text-end fw-semibold ${acc.unassigned < 0 ? 'text-danger' : 'text-success'}">$${acc.unassigned.toFixed(2)}</td>
             <td class="text-center">
-                <div class="d-flex justify-content-center gap-2">
-                    <button class="btn btn-link text-primary btn-sm p-0" onclick="showEditAccountNameModal(${acc.id})" title="Edit Account Name"><i class="bi bi-pencil-square"></i></button>
-                    <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteAccount(${acc.id})" title="Delete Account"><i class="bi bi-trash"></i></button>
+                <div class="flex center gap-2">
+                    <button class="btn-link text-primary" onclick="showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
+                    <button class="btn-link text-danger" onclick="deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>
                 </div>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="5" class="text-center text-muted py-3">No accounts added yet.</td></tr>';
+    `).join('') || '<tr><td colspan="5" class="empty">No accounts added yet.</td></tr>';
 }
 
 function renderAllocations() {
@@ -97,28 +104,26 @@ function renderAllocations() {
     container.innerHTML = filteredAllocations.map(al => {
         let pct = al.target_amount > 0 ? Math.min(100, Math.round((al.amount_available / al.target_amount) * 100)) : 0;
         return `
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <h6 class="fw-bold mb-0">${al.name}</h6>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-link text-primary btn-sm p-0" onclick="showEditAllocationModal(${al.id})" title="Edit Allocation"><i class="bi bi-pencil-square"></i></button>
-                                <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteAllocation(${al.id})" title="Delete Allocation"><i class="bi bi-trash"></i></button>
-                            </div>
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="flex between mb-1">
+                        <h6 class="alloc-name">${al.name}</h6>
+                        <div class="flex gap-2">
+                            <button class="btn-link text-primary" onclick="showEditAllocationModal(${al.id})" title="Edit Allocation">${ICONS.edit}</button>
+                            <button class="btn-link text-danger" onclick="deleteAllocation(${al.id})" title="Delete Allocation">${ICONS.trash}</button>
                         </div>
-                        <div class="badge bg-light text-secondary mb-2">${al.account_name || 'Unassigned Acc'}</div>
-                        <div class="d-flex justify-content-between align-items-baseline mb-1">
-                            <span class="h5 fw-bold text-dark mb-0">$${al.amount_available.toFixed(2)}</span>
-                            <span class="small text-muted">Goal: $${al.target_amount.toFixed(2)}</span>
-                        </div>
-                        <div class="progress mb-2">
-                            <div class="progress-bar ${pct >= 100 ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${pct}%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between extra-small text-muted">
-                            <span>${pct}% funded</span>
-                            <span>${al.target_date ? 'Target: ' + al.target_date : ''}</span>
-                        </div>
+                    </div>
+                    <span class="badge mb-2">${al.account_name || 'Unassigned Acc'}</span>
+                    <div class="flex between align-baseline mb-1">
+                        <span class="alloc-avail">$${al.amount_available.toFixed(2)}</span>
+                        <span class="goal">Goal: $${al.target_amount.toFixed(2)}</span>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar ${pct >= 100 ? 'done' : ''}" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="flex between extra-small text-muted">
+                        <span>${pct}% funded</span>
+                        <span>${al.target_date ? 'Target: ' + al.target_date : ''}</span>
                     </div>
                 </div>
             </div>
@@ -131,41 +136,41 @@ function renderAllocations() {
         return `
             <tr>
                 <td class="fw-semibold">${al.name}</td>
-                <td><span class="badge bg-light text-dark">${al.account_name || 'Unassigned Acc'}</span></td>
+                <td><span class="badge">${al.account_name || 'Unassigned Acc'}</span></td>
                 <td class="text-end fw-bold text-dark">$${al.amount_available.toFixed(2)}</td>
                 <td class="text-end text-muted">$${al.target_amount.toFixed(2)}</td>
                 <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="progress flex-grow-1" style="height: 8px;">
-                            <div class="progress-bar ${pct >= 100 ? 'bg-success' : 'bg-primary'}" role="progressbar" style="width: ${pct}%"></div>
+                    <div class="flex gap-2">
+                        <div class="progress progress-sm progress-inline">
+                            <div class="progress-bar ${pct >= 100 ? 'done' : ''}" style="width: ${pct}%"></div>
                         </div>
                         <span class="small text-muted">${pct}%</span>
                     </div>
                 </td>
                 <td class="small">${al.target_date || '-'}</td>
                 <td class="text-center">
-                    <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-link text-primary btn-sm p-0" onclick="showEditAllocationModal(${al.id})" title="Edit Allocation"><i class="bi bi-pencil-square"></i></button>
-                        <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteAllocation(${al.id})" title="Delete Allocation"><i class="bi bi-trash"></i></button>
+                    <div class="flex center gap-2">
+                        <button class="btn-link text-primary" onclick="showEditAllocationModal(${al.id})" title="Edit Allocation">${ICONS.edit}</button>
+                        <button class="btn-link text-danger" onclick="deleteAllocation(${al.id})" title="Delete Allocation">${ICONS.trash}</button>
                     </div>
                 </td>
             </tr>
         `;
-    }).join('') || '<tr><td colspan="7" class="text-center text-muted py-3">No allocations found for this filter.</td></tr>';
+    }).join('') || '<tr><td colspan="7" class="empty">No allocations found for this filter.</td></tr>';
 
     applyAllocationView();
 }
 
 // --- View toggles ---
 function setAllocationView(view) {
-    allocView = view;
+    allocationView = view;
     document.getElementById('alloc-view-grid').classList.toggle('active', view === 'grid');
     document.getElementById('alloc-view-list').classList.toggle('active', view === 'list');
     applyAllocationView();
 }
 
 function applyAllocationView() {
-    const grid = allocView === 'grid';
+    const grid = allocationView === 'grid';
     document.getElementById('allocations-container').style.display = grid ? '' : 'none';
     document.getElementById('allocations-table-wrap').style.display = grid ? 'none' : '';
 }
@@ -201,8 +206,8 @@ function filterTransactions() {
         <tr>
             <td class="small">${t.date}</td>
             <td class="fw-semibold">${t.description}</td>
-            <td><span class="badge bg-light text-dark">${t.account_name}</span></td>
-            <td><span class="badge bg-light text-dark">${t.allocation_name || '-'}</span></td>
+            <td><span class="badge">${t.account_name}</span></td>
+            <td><span class="badge">${t.allocation_name || '-'}</span></td>
             <td>
                 <span class="badge ${t.type === 'expense' ? 'badge-expense' : t.type === 'income' ? 'badge-income' : 'badge-transfer'}">
                     ${t.type.toUpperCase()}
@@ -212,13 +217,13 @@ function filterTransactions() {
                 ${t.type === 'expense' ? '-' : t.type === 'income' ? '+' : ''}$${Math.abs(t.amount).toFixed(2)}
             </td>
             <td class="text-center">
-                <div class="d-flex justify-content-center gap-2">
-                    ${t.type !== 'transfer' ? `<button class="btn btn-link text-primary btn-sm p-0" onclick="showEditTransactionModal(${t.id})" title="Edit Transaction"><i class="bi bi-pencil-square"></i></button>` : ''}
-                    <button class="btn btn-link text-danger btn-sm p-0" onclick="deleteTransaction(${t.id})" title="Delete Transaction"><i class="bi bi-trash"></i></button>
+                <div class="flex center gap-2">
+                    ${t.type !== 'transfer' ? `<button class="btn-link text-primary" onclick="showEditTransactionModal(${t.id})" title="Edit Transaction">${ICONS.edit}</button>` : ''}
+                    <button class="btn-link text-danger" onclick="deleteTransaction(${t.id})" title="Delete Transaction">${ICONS.trash}</button>
                 </div>
             </td>
         </tr>
-    `).join('') || '<tr><td colspan="7" class="text-center text-muted py-3">No matching transactions found.</td></tr>';
+    `).join('') || '<tr><td colspan="7" class="empty">No matching transactions found.</td></tr>';
 }
 
 function populateSelectOptions() {
@@ -226,7 +231,7 @@ function populateSelectOptions() {
     document.getElementById('alloc-account-select').innerHTML = accOptions;
     document.getElementById('trans-account-select').innerHTML = accOptions;
     document.getElementById('transfer-acc-select').innerHTML = accOptions;
-    
+
     document.getElementById('alloc-account-filter').innerHTML = '<option value="">All Accounts</option>' + state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
 
     document.getElementById('slice-account').innerHTML = '<option value="">All Accounts</option>' + accOptions;
@@ -252,10 +257,10 @@ function populateTransferEnvelopes() {
 }
 
 // Modal Helpers
-function showAddAccountModal() { 
+function showAddAccountModal() {
     document.getElementById('acc-name').value = '';
     document.getElementById('acc-balance').value = '0.00';
-    new bootstrap.Modal(document.getElementById('accountModal')).show(); 
+    openModal('accountModal');
 }
 
 function showEditAccountNameModal(id) {
@@ -263,17 +268,17 @@ function showEditAccountNameModal(id) {
     if (!acc) return;
     document.getElementById('edit-acc-id').value = acc.id;
     document.getElementById('edit-acc-name').value = acc.name;
-    new bootstrap.Modal(document.getElementById('editAccountModal')).show();
+    openModal('editAccountModal');
 }
 
-function showAddAllocationModal() { 
+function showAddAllocationModal() {
     document.getElementById('alloc-id').value = '';
     document.getElementById('alloc-name').value = '';
     document.getElementById('alloc-target').value = '0.00';
     document.getElementById('alloc-avail').value = '0.00';
     document.getElementById('alloc-date').value = '';
     document.getElementById('allocationModalTitle').textContent = 'New Allocation';
-    new bootstrap.Modal(document.getElementById('allocationModal')).show(); 
+    openModal('allocationModal');
 }
 
 function showEditAllocationModal(id) {
@@ -286,17 +291,17 @@ function showEditAllocationModal(id) {
     document.getElementById('alloc-date').value = al.target_date || '';
     document.getElementById('alloc-account-select').value = al.account_id;
     document.getElementById('allocationModalTitle').textContent = 'Edit Allocation';
-    new bootstrap.Modal(document.getElementById('allocationModal')).show();
+    openModal('allocationModal');
 }
 
-function showAddTransactionModal() { 
+function showAddTransactionModal() {
     document.getElementById('trans-id').value = '';
     document.getElementById('trans-type').value = 'expense';
     document.getElementById('trans-desc').value = '';
     document.getElementById('trans-amount').value = '';
     document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('transactionModalTitle').textContent = 'Log Transaction';
-    new bootstrap.Modal(document.getElementById('transactionModal')).show(); 
+    openModal('transactionModal');
 }
 
 function showEditTransactionModal(id) {
@@ -308,18 +313,17 @@ function showEditTransactionModal(id) {
     document.getElementById('trans-amount').value = Math.abs(t.amount);
     document.getElementById('trans-date').value = t.date;
     document.getElementById('trans-account-select').value = t.account_id;
-    
+
     populateTransAllocSelect();
     document.getElementById('trans-alloc-select').value = t.allocation_id || '';
-    
+
     document.getElementById('transactionModalTitle').textContent = 'Edit Transaction';
-    new bootstrap.Modal(document.getElementById('transactionModal')).show();
+    openModal('transactionModal');
 }
 
-function showTransferModal() { new bootstrap.Modal(document.getElementById('transferModal')).show(); }
+function showTransferModal() { openModal('transferModal'); }
 
 function toggleTransType() {
-    const type = document.getElementById('trans-type').value;
     document.getElementById('trans-alloc-wrapper').style.display = 'block';
 }
 
@@ -335,7 +339,7 @@ async function handleAccountSubmit(e) {
         body: JSON.stringify({ name, balance })
     });
 
-    bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
+    closeModal('accountModal');
     fetchDashboard();
 }
 
@@ -352,7 +356,7 @@ async function handleEditAccountNameSubmit(e) {
         body: JSON.stringify({ name, balance: acc.balance })
     });
 
-    bootstrap.Modal.getInstance(document.getElementById('editAccountModal')).hide();
+    closeModal('editAccountModal');
     fetchDashboard();
 }
 
@@ -381,7 +385,7 @@ async function handleAllocationSubmit(e) {
         });
     }
 
-    bootstrap.Modal.getInstance(document.getElementById('allocationModal')).hide();
+    closeModal('allocationModal');
     fetchDashboard();
 }
 
@@ -412,15 +416,15 @@ async function handleTransactionSubmit(e) {
         document.getElementById('overspend-msg').textContent = result.message;
         const accId = pendingTxData.account_id;
         const allocs = state.allocations.filter(al => al.account_id == accId && al.id != pendingTxData.allocation_id);
-        
-        document.getElementById('overspend-cover-select').innerHTML = 
-            `<option value="unassigned">Unassigned Pool</option>` + 
+
+        document.getElementById('overspend-cover-select').innerHTML =
+            `<option value="unassigned">Unassigned Pool</option>` +
             allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('');
 
-        bootstrap.Modal.getInstance(document.getElementById('transactionModal')).hide();
-        new bootstrap.Modal(document.getElementById('overspendModal')).show();
+        closeModal('transactionModal');
+        openModal('overspendModal');
     } else {
-        bootstrap.Modal.getInstance(document.getElementById('transactionModal')).hide();
+        closeModal('transactionModal');
         fetchDashboard();
     }
 }
@@ -438,7 +442,7 @@ async function resolveOverspend() {
         body: JSON.stringify(pendingTxData)
     });
 
-    bootstrap.Modal.getInstance(document.getElementById('overspendModal')).hide();
+    closeModal('overspendModal');
     fetchDashboard();
 }
 
@@ -454,7 +458,7 @@ async function handleTransferSubmit(e) {
             amount: document.getElementById('transfer-amount').value
         })
     });
-    bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
+    closeModal('transferModal');
     fetchDashboard();
 }
 
