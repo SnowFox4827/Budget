@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 import sqlite3
 import os
 from datetime import datetime
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__)
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 DB_PATH = os.path.join(DATA_DIR, 'budget.db')
 
@@ -58,9 +58,9 @@ def init_db():
     conn.commit()
     conn.close()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.route('/api/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok'})
 
 # --- API ENDPOINTS ---
 
