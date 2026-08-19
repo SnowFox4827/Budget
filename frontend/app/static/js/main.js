@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Transaction slicing/filtering
-    const sliceInputs = ['slice-search', 'slice-account', 'slice-allocation', 'slice-type'];
+    const sliceInputs = ['slice-date-preset', 'slice-search', 'slice-account', 'slice-allocation', 'slice-type'];
     sliceInputs.forEach(id => {
         const el = document.getElementById(id);
         if (el) {

@@ -8,22 +8,64 @@ export function renderTransactions() {
 }
 
 export function filterTransactions() {
+    const presetEl = document.getElementById('slice-date-preset');
     const qEl = document.getElementById('slice-search');
     const accEl = document.getElementById('slice-account');
     const allocEl = document.getElementById('slice-allocation');
     const typeEl = document.getElementById('slice-type');
 
+    const preset = presetEl ? presetEl.value : '';
     const q = qEl ? qEl.value.toLowerCase().trim() : '';
     const accId = accEl ? accEl.value : '';
     const allocId = allocEl ? allocEl.value : '';
     const type = typeEl ? typeEl.value : '';
+
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const fmt = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    let dateFrom = '';
+    let dateTo = '';
+
+    if (preset === 'today') {
+        const todayStr = fmt(now);
+        dateFrom = todayStr;
+        dateTo = todayStr;
+    } else if (preset === 'this-month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        dateFrom = fmt(firstDay);
+        dateTo = fmt(lastDay);
+    } else if (preset === 'last-month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+        dateFrom = fmt(firstDay);
+        dateTo = fmt(lastDay);
+    } else if (preset === 'this-year') {
+        const firstDay = new Date(now.getFullYear(), 0, 1);
+        const lastDay = new Date(now.getFullYear(), 11, 31);
+        dateFrom = fmt(firstDay);
+        dateTo = fmt(lastDay);
+    }
 
     const filtered = state.transactions.filter(t => {
         const matchQ = (t.description || '').toLowerCase().includes(q);
         const matchAcc = !accId || t.account_id == accId;
         const matchAlloc = !allocId || t.allocation_id == allocId;
         const matchType = !type || t.type == type;
-        return matchQ && matchAcc && matchAlloc && matchType;
+        const matchDateFrom = !dateFrom || (t.date && t.date >= dateFrom);
+        const matchDateTo = !dateTo || (t.date && t.date <= dateTo);
+        return matchQ && matchAcc && matchAlloc && matchType && matchDateFrom && matchDateTo;
+    });
+
+    // Sort newest first (descending date, descending id)
+    filtered.sort((a, b) => {
+        const dateA = a.date || '';
+        const dateB = b.date || '';
+        if (dateB !== dateA) {
+            return dateB.localeCompare(dateA);
+        }
+        return (b.id || 0) - (a.id || 0);
     });
 
     const tbody = document.getElementById('transactions-list');

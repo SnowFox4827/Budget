@@ -248,7 +248,10 @@ th.text-center, td.text-center { text-align: center; }
 .empty { text-align: center; color: var(--text-soft); padding: 16px; }
 
 /* ---------- Filters ---------- */
-.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; align-items: center; }
+.date-range-group { display: inline-flex; align-items: center; gap: 6px; width: 100%; grid-column: span 1; }
+.date-range-group input[type=date] { flex: 1; min-width: 0; }
+.date-sep { color: var(--text-faint); font-size: .8rem; font-weight: 500; white-space: nowrap; }
 
 /* ---------- Forms ---------- */
 .form-group { margin-bottom: 15px; }
