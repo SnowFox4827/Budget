@@ -73,19 +73,20 @@ export function renderAllocations() {
 
 export function setAllocationView(view) {
     uiState.allocationView = view;
-    const gridBtn = document.getElementById('alloc-view-grid');
-    const listBtn = document.getElementById('alloc-view-list');
-    if (gridBtn) gridBtn.classList.toggle('active', view === 'grid');
-    if (listBtn) listBtn.classList.toggle('active', view === 'list');
     applyAllocationView();
 }
 
 export function applyAllocationView() {
-    const grid = uiState.allocationView === 'grid';
+    const isGrid = uiState.allocationView === 'grid';
+    const gridBtn = document.getElementById('alloc-view-grid');
+    const listBtn = document.getElementById('alloc-view-list');
+    if (gridBtn) gridBtn.classList.toggle('active', isGrid);
+    if (listBtn) listBtn.classList.toggle('active', !isGrid);
+
     const container = document.getElementById('allocations-container');
     const tableWrap = document.getElementById('allocations-table-wrap');
-    if (container) container.style.display = grid ? '' : 'none';
-    if (tableWrap) tableWrap.style.display = grid ? 'none' : '';
+    if (container) container.style.display = isGrid ? '' : 'none';
+    if (tableWrap) tableWrap.style.display = isGrid ? 'none' : '';
 }
 
 export function populateTransferEnvelopes() {

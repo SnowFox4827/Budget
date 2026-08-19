@@ -13,13 +13,13 @@ export function filterTransactions() {
     const allocEl = document.getElementById('slice-allocation');
     const typeEl = document.getElementById('slice-type');
 
-    const q = qEl ? qEl.value.toLowerCase() : '';
+    const q = qEl ? qEl.value.toLowerCase().trim() : '';
     const accId = accEl ? accEl.value : '';
     const allocId = allocEl ? allocEl.value : '';
     const type = typeEl ? typeEl.value : '';
 
     const filtered = state.transactions.filter(t => {
-        const matchQ = t.description.toLowerCase().includes(q);
+        const matchQ = (t.description || '').toLowerCase().includes(q);
         const matchAcc = !accId || t.account_id == accId;
         const matchAlloc = !allocId || t.allocation_id == allocId;
         const matchType = !type || t.type == type;
@@ -30,17 +30,17 @@ export function filterTransactions() {
     if (tbody) {
         tbody.innerHTML = filtered.map(t => `
             <tr>
-                <td class="small">${t.date}</td>
-                <td class="fw-semibold">${t.description}</td>
-                <td><span class="badge">${t.account_name}</span></td>
+                <td class="small">${t.date || '-'}</td>
+                <td class="fw-semibold">${t.description || ''}</td>
+                <td><span class="badge">${t.account_name || 'Account'}</span></td>
                 <td><span class="badge">${t.allocation_name || '-'}</span></td>
                 <td>
                     <span class="badge ${t.type === 'expense' ? 'badge-expense' : t.type === 'income' ? 'badge-income' : 'badge-transfer'}">
-                        ${t.type.toUpperCase()}
+                        ${(t.type || '').toUpperCase()}
                     </span>
                 </td>
                 <td class="text-end fw-bold ${t.type === 'expense' ? 'text-danger' : t.type === 'income' ? 'text-success' : 'text-info'}">
-                    ${t.type === 'expense' ? '-' : t.type === 'income' ? '+' : ''}$${Math.abs(t.amount).toFixed(2)}
+                    ${t.type === 'expense' ? '-' : t.type === 'income' ? '+' : ''}$${Math.abs(t.amount || 0).toFixed(2)}
                 </td>
                 <td class="text-center">
                     <div class="flex center gap-2">

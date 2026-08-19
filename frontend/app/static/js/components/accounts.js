@@ -40,19 +40,26 @@ export function renderAccounts() {
             </tr>
         `).join('') || '<tr><td colspan="5" class="empty">No accounts added yet.</td></tr>';
     }
+
+    applyAccountView();
 }
 
 export function toggleAccountView(view) {
     uiState.accountView = view;
+    applyAccountView();
+}
+
+export function applyAccountView() {
+    const isGrid = uiState.accountView === 'grid';
     const gridBtn = document.getElementById('acc-view-grid');
     const listBtn = document.getElementById('acc-view-list');
-    if (gridBtn) gridBtn.classList.toggle('active', view === 'grid');
-    if (listBtn) listBtn.classList.toggle('active', view === 'list');
+    if (gridBtn) gridBtn.classList.toggle('active', isGrid);
+    if (listBtn) listBtn.classList.toggle('active', !isGrid);
     
     const container = document.getElementById('accounts-container');
     const listWrap = document.getElementById('accounts-list-wrap');
-    if (container) container.style.display = view === 'grid' ? '' : 'none';
-    if (listWrap) listWrap.style.display = view === 'grid' ? 'none' : '';
+    if (container) container.style.display = isGrid ? '' : 'none';
+    if (listWrap) listWrap.style.display = isGrid ? 'none' : '';
 }
 
 export function showAddAccountModal() {

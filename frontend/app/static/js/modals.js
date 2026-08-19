@@ -9,15 +9,28 @@ export function closeModal(id) {
 }
 
 export function switchTab(id) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const targetTab = document.getElementById(id);
-    if (targetTab) targetTab.classList.add('active');
-    
-    // Find matching button and mark active
-    const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => {
+    // Hide all tab panes
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+
+    // Deactivate all tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Activate the targeted tab pane
+    const targetPane = document.getElementById(id);
+    if (targetPane) {
+        targetPane.classList.add('active');
+    }
+
+    // Activate the targeted tab button
+    const activeBtn = document.querySelector(`.tab-btn[data-tab="${id}"]`) || Array.from(document.querySelectorAll('.tab-btn')).find(b => {
         const onclick = b.getAttribute('onclick') || '';
         return onclick.includes(id);
     });
-    if (activeBtn) activeBtn.classList.add('active');
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
 }
