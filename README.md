@@ -103,6 +103,9 @@ All host-specific settings (ports, storage directories, OpenMediaVault / NAS pat
 # Port on your host machine / browser
 HOST_PORT=8080
 
+# Port for direct external API access (Home Assistant, scripts, Postman)
+BACKEND_PORT=5000
+
 # Database storage path on host
 DATA_DIR=./backend/data
 
