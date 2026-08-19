@@ -6,8 +6,8 @@ services:
       context: ./backend
     container_name: budget-backend
     volumes:
-      - ./backend/data:/app/data
-      - ./backups:/backups
+      - ${DATA_DIR:-./backend/data}:/app/data
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
     expose:
       - "5000"
     restart: unless-stopped
@@ -24,7 +24,7 @@ services:
     environment:
       - BACKEND_URL=http://backend:5000
     ports:
-      - "8080:80"
+      - "${HOST_PORT:-8080}:80"
     depends_on:
       backend:
         condition: service_healthy
@@ -38,13 +38,11 @@ services:
     environment:
       - DB_PATH=/app/data/budget.db
       - BACKUP_DIR=/backups
-      - RETENTION_DAYS=30
-      - BACKUP_INTERVAL_HOURS=24
+      - RETENTION_DAYS=${RETENTION_DAYS:-30}
+      - BACKUP_INTERVAL_HOURS=${BACKUP_INTERVAL_HOURS:-24}
     volumes:
-      - ./backend/data:/app/data:ro
-      # Local backups folder (or map to your OpenMediaVault / NAS path):
-      - ./backups:/backups
-      # - /srv/dev-disk-by-uuid-.../Backups/Budget:/backups
+      - ${DATA_DIR:-./backend/data}:/app/data:ro
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
     depends_on:
       backend:
         condition: service_healthy

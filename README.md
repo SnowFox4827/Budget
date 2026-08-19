@@ -41,9 +41,12 @@ Because the frontend proxies `/api`, the browser talks to a **single origin** �
 
 ## Project Structure
 
-```
+```text
 Budget/
-├── docker-compose.yml        # two-service orchestration
+├── docker-compose.yml        # Multi-service stack (backend, frontend, backup)
+├── .env.example              # Sample environment configuration template
+├── .env                      # Active environment variables (git-ignored)
+├── Dockerfile.backup         # Lightweight Alpine backup sidecar
 ├── README.md
 ├── .gitignore
 │
@@ -59,7 +62,8 @@ Budget/
 │   │       ├── accounts.py   # Account management endpoints
 │   │       ├── allocations.py# Envelope allocation & transfer endpoints
 │   │       ├── dashboard.py  # Summary, health check & metrics endpoints
-│   │       └── transactions.py# Transaction CRUD, overspend & reversal logic
+│   │       ├── transactions.py# Transaction CRUD, overspend & reversal logic
+│   │       └── backup.py     # Database backup & JSON export endpoints
 │   └── data/                 # SQLite budget.db persistence volume
 │
 └── frontend/
@@ -86,9 +90,33 @@ Budget/
 │
 ├── scripts/
 │   └── backup.py             # Automated dual-format backup runner
-├── backups/                  # Rolling snapshots (auto-created)
-├── Dockerfile.backup         # Lightweight Alpine backup sidecar
+└── backups/                  # Rolling snapshots (auto-created)
 ```
+
+---
+
+## Environment Variables (`.env`)
+
+All host-specific settings (ports, storage directories, OpenMediaVault / NAS paths, backup intervals) are configured in a `.env` file:
+
+```dotenv
+# Port on your host machine / browser
+HOST_PORT=8080
+
+# Database storage path on host
+DATA_DIR=./backend/data
+
+# Backup destination path on host (local folder or OpenMediaVault pool)
+BACKUP_HOST_DIR=/srv/dev-disk-by-uuid-YOUR-UUID/Backups/Budget
+
+# Automated backup interval in hours (e.g. 24 = once daily)
+BACKUP_INTERVAL_HOURS=24
+
+# Number of days to keep backup snapshots before automatic deletion
+RETENTION_DAYS=30
+```
+
+Docker Compose reads this `.env` file automatically upon `docker compose up`.
 
 ---
 
