@@ -81,8 +81,60 @@ Budget/
                     ├── accounts.js     # Account cards & table views
                     ├── allocations.js  # Envelope cards, bars & transfers
                     ├── summary.js      # Cash summary & badge indicators
-                    └── transactions.js # Transaction log & filter logic
+                    ├── transactions.js # Transaction log & filter logic
+                    └── backup.js       # Backup status & download handlers
+│
+├── scripts/
+│   └── backup.py             # Automated dual-format backup runner
+├── backups/                  # Rolling snapshots (auto-created)
+├── Dockerfile.backup         # Lightweight Alpine backup sidecar
 ```
+
+---
+
+## Automated Backups & OpenMediaVault (OMV) Setup
+
+The application features an automated backup sidecar that creates **dual-format snapshots** (safe SQLite `.db` binary + structured `.json` data dump + SHA-256 checksums) with automatic rolling retention.
+
+### Snapshot Output Structure
+```text
+backups/
+├── latest.json                     # Live readable JSON copy
+└── snapshot_YYYYMMDD_HHMMSS/
+    ├── budget.db                   # Safe online SQLite snapshot
+    ├── data_export.json            # Human-readable, corruption-proof JSON
+    └── checksum.sha256             # SHA-256 integrity verification
+```
+
+### Direct OpenMediaVault (OMV) / NAS Mapping
+In `docker-compose.yml`, map the `backup-sidecar` container's `/backups` volume directly to your OMV storage pool:
+
+```yaml
+  backup-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: budget-backup
+    environment:
+      - DB_PATH=/app/data/budget.db
+      - BACKUP_DIR=/backups
+      - RETENTION_DAYS=30
+      - BACKUP_INTERVAL_HOURS=24
+    volumes:
+      - ./backend/data:/app/data:ro
+      # Replace with your OMV shared folder path:
+      - /srv/dev-disk-by-uuid-YOUR-UUID/Backups/Budget:/backups
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+```
+
+### Manual Backup & Export via UI
+Click the **Backup** button in the top navigation bar to:
+- **Download JSON Export:** Formatted `.json` file for spreadsheets, auditing, and portability.
+- **Download SQLite Database:** Live point-in-time `.db` snapshot for full binary restoration.
+- **Trigger Instant Snapshot:** Creates an on-demand snapshot directly into your backups volume / NAS drive.
 
 ---
 

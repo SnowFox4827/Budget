@@ -9,9 +9,11 @@ ENV/
 
 # Data directory & SQLite Database
 data/
+backups/
 *.db
 *.sqlite
 *.sqlite3
+*.sha256
 
 # IDE / Editor Files
 .vscode/

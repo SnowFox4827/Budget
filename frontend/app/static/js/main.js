@@ -35,6 +35,11 @@ import {
     resolveOverspend,
     deleteTransaction
 } from './components/transactions.js';
+import {
+    showBackupModal,
+    downloadBackup,
+    triggerServerSnapshot
+} from './components/backup.js';
 
 // Global Data Fetch
 export async function fetchDashboard() {
@@ -81,6 +86,11 @@ window.showEditTransactionModal = showEditTransactionModal;
 window.toggleTransType = toggleTransType;
 window.resolveOverspend = () => resolveOverspend(fetchDashboard);
 window.deleteTransaction = (id) => deleteTransaction(id, fetchDashboard);
+
+// Backup handlers
+window.showBackupModal = showBackupModal;
+window.downloadBackup = downloadBackup;
+window.triggerServerSnapshot = triggerServerSnapshot;
 
 // Setup form listeners and filters on DOM ready
 document.addEventListener('DOMContentLoaded', () => {

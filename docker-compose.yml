@@ -7,6 +7,7 @@ services:
     container_name: budget-backend
     volumes:
       - ./backend/data:/app/data
+      - ./backups:/backups
     expose:
       - "5000"
     restart: unless-stopped
@@ -24,6 +25,26 @@ services:
       - BACKEND_URL=http://backend:5000
     ports:
       - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backup-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: budget-backup
+    environment:
+      - DB_PATH=/app/data/budget.db
+      - BACKUP_DIR=/backups
+      - RETENTION_DAYS=30
+      - BACKUP_INTERVAL_HOURS=24
+    volumes:
+      - ./backend/data:/app/data:ro
+      # Local backups folder (or map to your OpenMediaVault / NAS path):
+      - ./backups:/backups
+      # - /srv/dev-disk-by-uuid-.../Backups/Budget:/backups
     depends_on:
       backend:
         condition: service_healthy

@@ -280,3 +280,5 @@ input::placeholder { color: var(--text-faint); }
 .btn-close.white { color: #fff; }
 .overspend-msg { font-weight: 700; color: var(--danger); }
 .overspend-note { color: var(--text-soft); font-size: .85rem; }
+.backup-status-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.flex.col { flex-direction: column; }

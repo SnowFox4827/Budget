@@ -1,6 +1,6 @@
 from flask import Flask
 from app.db import init_db
-from app.routes import dashboard_bp, accounts_bp, allocations_bp, transactions_bp
+from app.routes import dashboard_bp, accounts_bp, allocations_bp, transactions_bp, backup_bp
 
 def create_app():
     """Application factory for Budget backend."""
@@ -14,5 +14,6 @@ def create_app():
     app.register_blueprint(accounts_bp)
     app.register_blueprint(allocations_bp)
     app.register_blueprint(transactions_bp)
+    app.register_blueprint(backup_bp)
     
     return app

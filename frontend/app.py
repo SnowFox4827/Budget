@@ -1,4 +1,4 @@
-from flask import Flask, request, send_from_directory, jsonify
+from flask import Flask, request, send_from_directory, jsonify, Response
 import requests
 import os
 
@@ -27,7 +27,6 @@ def js(filename):
 @app.route('/api/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def proxy(path):
     """Reverse-proxy API calls to the backend container."""
-    import requests
     url = f"{BACKEND_URL}/api/{path}"
     params = request.args.to_dict()
     data = request.get_data() if request.method in ('POST', 'PUT', 'DELETE') else None
@@ -35,10 +34,11 @@ def proxy(path):
         request.method, url, params=params, data=data,
         headers={'Content-Type': request.content_type or 'application/json'}
     )
-    try:
-        return jsonify(resp.json()), resp.status_code
-    except Exception:
-        return resp.text, resp.status_code
+    # Forward file downloads / attachments and raw responses properly
+    excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+    headers = [(name, value) for (name, value) in resp.raw.headers.items()
+               if name.lower() not in excluded_headers]
+    return Response(resp.content, resp.status_code, headers)
 
 @app.route('/api/health')
 def health():

@@ -89,3 +89,17 @@ export async function deleteTransactionApi(id) {
     });
     return res.json();
 }
+
+export async function fetchBackupStatusApi() {
+    const res = await fetch('/api/backup/status');
+    if (!res.ok) throw new Error('Failed to fetch backup status');
+    return res.json();
+}
+
+export async function triggerSnapshotApi() {
+    const res = await fetch('/api/backup/snapshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    return res.json();
+}

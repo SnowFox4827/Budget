@@ -18,6 +18,10 @@
             <p class="subtitle m-0">Zero-Based Envelope Allocation System</p>
         </div>
         <div class="flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="showBackupModal()" title="Database Backup & Export">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+                Backup
+            </button>
             <label class="theme-switch" title="Toggle light / dark theme" aria-label="Toggle theme">
                 <input type="checkbox" id="theme-toggle" onclick="toggleTheme()">
                 <span class="theme-track">
@@ -371,6 +375,43 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Complete Reallocation</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup & Export Modal -->
+<div class="modal" id="backupModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title flex align-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>
+                    Database Backup &amp; Export
+                </h5>
+                <button type="button" class="btn-close" onclick="closeModal('backupModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="backup-status-card mb-3" id="backup-status-box">
+                    <div class="small text-muted mb-1">Automated Snapshot Status</div>
+                    <div class="fw-semibold" id="backup-last-time">Loading status...</div>
+                    <div class="small text-muted mt-1" id="backup-total-count"></div>
+                </div>
+
+                <div class="backup-actions flex col gap-2">
+                    <button type="button" class="btn btn-outline-secondary w-100 flex center gap-2" onclick="downloadBackup('json')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/></svg>
+                        Download JSON Data Export (.json)
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary w-100 flex center gap-2" onclick="downloadBackup('db')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1.5a.5.5 0 0 1-1 0V11a.5.5 0 0 1 1 0Zm0 3a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0Z"/><path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753.982A12.31 12.31 0 0 1 10 8.482V7.126a11.192 11.192 0 0 0 2.096-.903Z"/><path d="M2.5 4v1.5C2.5 6.88 5.858 8 10 8c.577 0 1.136-.021 1.666-.062a4.992 4.992 0 0 1-.666-1.42c-.328.031-.66.05-.999.05-3.642 0-6.5-1.02-6.5-2.068V4Z"/><path d="M10 0C5.858 0 2.5 1.12 2.5 2.5S5.858 5 10 5s7.5-1.12 7.5-2.5S14.142 0 10 0Z"/></svg>
+                        Download SQLite Binary (.db)
+                    </button>
+                    <button type="button" class="btn btn-primary w-100 flex center gap-2" id="btn-trigger-snapshot" onclick="triggerServerSnapshot()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/><path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/></svg>
+                        Create Instant Snapshot on NAS / Server
+                    </button>
+                </div>
             </div>
         </div>
     </div>
