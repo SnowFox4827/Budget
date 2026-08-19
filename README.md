@@ -1,6 +1,6 @@
 # Budget App
 
-A paper-and-envelope themed zero-based envelope budgeting web application with **Flask** (both containers), **SQLite**, and **vanilla JS** — fully self-contained, **no nginx/gunicorn**, and deployable as two independent containers.
+A paper-and-envelope themed zero-based envelope budgeting web application with **Flask** (both containers), **SQLite**, and **vanilla JS (ES Modules)** — fully modular, self-contained, **no nginx/gunicorn**, and deployable as two independent containers.
 
 ---
 
@@ -17,24 +17,25 @@ The app is split into two containers:
                                                       · SQLite in /app/data
 ```
 
-- **Backend container** — Flask, API-only. No HTML or static files. Reads/writes SQLite from a mounted `./data` volume.
-- **Frontend container** — Flask. Serves the static HTML/CSS/JS and reverse-proxies `/api/*` to the backend over the Docker network (via `requests`).
+- **Backend container** — Flask, API-only with modular blueprints and an application factory. Reads/writes SQLite from a mounted `./data` volume.
+- **Frontend container** — Flask. Serves static HTML/CSS/ES Modules and reverse-proxies `/api/*` to the backend over the Docker network (via `requests`).
 
-> Both containers run **pure Python** (Flask's built-in server). No nginx, no gunicorn — minimal and self-contained.
+> Both containers run **pure Python** (Flask's built-in server). No nginx, no gunicorn — minimal, modular, and self-contained.
 
-Because the frontend proxies `/api`, the browser talks to a **single origin** — so the page's `fetch('/api/...')` calls work unchanged with **no CORS** setup.
+Because the frontend proxies `/api`, the browser talks to a **single origin** — so the page's `fetch('/api/...')` calls work seamlessly with **no CORS** setup.
 
 ---
 
 ## Features
 
 - **Zero-Based Budgeting:** Total Net Worth, Total Allocated, and Unassigned Dollars in real time.
-- **Account Management:** Add, rename, and manage accounts.
-- **Envelopes & Allocations:** goals tied to accounts, amounts, target dates, progress bars, filtering by account; deleting an allocation returns funds to Unassigned.
-- **Transactions & Overspend Protection:** expenses, income, and transfers with automated balance recalc; filters for description/account/allocation/type; overspend warnings.
-- **Reallocate Funds:** shift dollars between allocations or the unassigned pool.
-- **Card ⇄ list views** for Allocations and Accounts.
+- **Account Management:** Add, rename, and manage accounts with both card and tabular views.
+- **Envelopes & Allocations:** Goals tied to accounts, target amounts, target dates, progress bars, and filtering by account. Deleting an allocation returns funds to Unassigned Dollars.
+- **Transactions & Overspend Protection:** Expenses, income, and transfers with automated balance recalculation and overspend shortfall resolution.
+- **Reallocate Funds:** Shift dollars between allocations or the unassigned pool.
+- **Card ⇄ List Views** for Allocations and Accounts.
 - **Light & Dark** "paper & envelopes" themes with a sliding toggle (persisted in `localStorage`).
+- **Modular Codebase:** Decoupled backend blueprints and componentized ES frontend modules.
 
 ---
 
@@ -48,17 +49,39 @@ Budget/
 │
 ├── backend/
 │   ├── Dockerfile            # backend image (python:3.11-slim)
-│   ├── requirements.txt      # Flask only
-│   ├── app.py                # Flask API (no HTML)
-│   └── data/                 # SQLite budget.db (lives beside its service)
+│   ├── requirements.txt      # Flask
+│   ├── app.py                # Server entry point (calls create_app)
+│   ├── app/
+│   │   ├── __init__.py       # Application factory & blueprint registration
+│   │   ├── db.py             # SQLite connection & schema initialization
+│   │   └── routes/           # Modular Flask Blueprints
+│   │       ├── __init__.py
+│   │       ├── accounts.py   # Account management endpoints
+│   │       ├── allocations.py# Envelope allocation & transfer endpoints
+│   │       ├── dashboard.py  # Summary, health check & metrics endpoints
+│   │       └── transactions.py# Transaction CRUD, overspend & reversal logic
+│   └── data/                 # SQLite budget.db persistence volume
 │
-├── frontend/
-│   ├── Dockerfile            # frontend image (python:3.11-slim)
-│   ├── requirements.txt      # Flask + requests
-│   ├── app.py                # static server + /api reverse-proxy
-│   └── app/                  # index.html + static/ served by Flask
-│
-└── backups/                  # snapshots for rollback
+└── frontend/
+    ├── Dockerfile            # frontend image (python:3.11-slim)
+    ├── requirements.txt      # Flask + requests
+    ├── app.py                # static server + /api reverse-proxy
+    └── app/
+        ├── index.html        # Single-page app UI shell
+        └── static/
+            ├── css/
+            │   └── styles.css
+            └── js/
+                ├── api.js    # API communication client
+                ├── main.js   # Main entry point & event wiring
+                ├── modals.js # Modal & tab helpers
+                ├── state.js  # Global state & SVG icons
+                ├── theme.js  # Light/dark mode manager
+                └── components/
+                    ├── accounts.js     # Account cards & table views
+                    ├── allocations.js  # Envelope cards, bars & transfers
+                    ├── summary.js      # Cash summary & badge indicators
+                    └── transactions.js # Transaction log & filter logic
 ```
 
 ---
