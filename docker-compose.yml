@@ -6,7 +6,8 @@ services:
       context: ./backend
     container_name: budget-backend
     volumes:
-      - ./backend/data:/app/data
+      - ${DATA_DIR:-./backend/data}:/app/data
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
     expose:
       - "5000"
     restart: unless-stopped
@@ -23,7 +24,25 @@ services:
     environment:
       - BACKEND_URL=http://backend:5000
     ports:
-      - "8080:80"
+      - "${HOST_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backup-sidecar:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: budget-backup
+    environment:
+      - DB_PATH=/app/data/budget.db
+      - BACKUP_DIR=/backups
+      - RETENTION_DAYS=${RETENTION_DAYS:-30}
+      - BACKUP_INTERVAL_HOURS=${BACKUP_INTERVAL_HOURS:-24}
+    volumes:
+      - ${DATA_DIR:-./backend/data}:/app/data:ro
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
     depends_on:
       backend:
         condition: service_healthy
