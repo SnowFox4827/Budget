@@ -16,7 +16,6 @@ export function renderAccounts() {
                         </div>
                     </div>
                     <div class="acc-balance">$${acc.balance.toFixed(2)}</div>
-                    <div class="acc-row"><span>Allocated:</span><span class="value">$${acc.allocated.toFixed(2)}</span></div>
                 </div>
             </div>
         `).join('') || '<p class="text-muted">No accounts added yet.</p>';
