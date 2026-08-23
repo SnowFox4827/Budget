@@ -108,8 +108,11 @@ export function populateSelectOptions() {
     if (allocAccSelect) allocAccSelect.innerHTML = accOptions;
     if (transAccSelect) transAccSelect.innerHTML = accOptions;
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
-    if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-    if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + accOptions;
+    // Exclude the protected Unassigned (system) account from the allocations
+    // slicer/filter so it isn't shown as a filterable amount.
+    const realAccOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+    if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + realAccOptions;
 
     const allocOptions = state.allocations.map(al => `<option value="${al.id}">${al.name}</option>`).join('');
     if (sliceAlloc) sliceAlloc.innerHTML = '<option value="">All Allocations</option>' + allocOptions;
