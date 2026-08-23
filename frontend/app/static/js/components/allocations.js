@@ -13,7 +13,7 @@ export function renderAllocations() {
             return `
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="flex space-between align-center mb-1">
+                        <div class="flex between align-center mb-1">
                             <h6 class="alloc-name">${al.name}</h6>
                             <div class="flex gap-2">
                                 <button class="btn-link text-primary" onclick="window.showEditAllocationModal(${al.id})" title="Edit Allocation">${ICONS.edit}</button>
@@ -21,14 +21,14 @@ export function renderAllocations() {
                             </div>
                         </div>
                         <span class="badge mb-2">${al.account_name || 'Unassigned Acc'}</span>
-                        <div class="flex space-between align-baseline mb-1">
+                        <div class="flex between align-baseline mb-1">
                             <span class="alloc-avail">$${al.amount_available.toFixed(2)}</span>
                             <span class="goal">Goal: $${al.target_amount.toFixed(2)}</span>
                         </div>
                         <div class="progress mb-2">
                             <div class="progress-bar ${pct >= 100 ? 'done' : ''}" style="width: ${pct}%"></div>
                         </div>
-                        <div class="flex space-between extra-small text-muted">
+                        <div class="flex between extra-small text-muted">
                             <span>${pct}% funded</span>
                             <span>${al.target_date ? 'Target: ' + al.target_date : ''}</span>
                         </div>

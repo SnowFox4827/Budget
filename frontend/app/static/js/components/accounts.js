@@ -8,7 +8,7 @@ export function renderAccounts() {
         container.innerHTML = state.accounts.map(acc => `
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="flex space-between align-center mb-2">
+                    <div class="flex between align-center mb-2">
                         <h5 class="fw-bold m-0">${acc.name}</h5>
                         <div class="flex gap-2">
                             ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}
