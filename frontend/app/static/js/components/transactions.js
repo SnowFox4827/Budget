@@ -1,6 +1,6 @@
 import { state, uiState, ICONS } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
-import { createTransactionApi, updateTransactionApi, deleteTransactionApi } from '../api.js';
+import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
 import { populateTransferEnvelopes } from './allocations.js';
 
 export function renderTransactions() {
@@ -165,14 +165,78 @@ export function toggleTransType() {
     const type = document.getElementById('trans-type').value;
     const accWrapper = document.getElementById('trans-acc-wrapper');
     const allocWrapper = document.getElementById('trans-alloc-wrapper');
-    if (accWrapper) accWrapper.style.display = (type === 'income') ? 'none' : 'block';
-    if (allocWrapper) allocWrapper.style.display = (type === 'income') ? 'none' : 'block';
+    const descGroup = document.getElementById('trans-desc-group');
+    const dateGroup = document.getElementById('trans-date-group');
+    const fromGroup = document.getElementById('trans-from-group');
+    const toGroup = document.getElementById('trans-to-group');
+    const show = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
+    if (type === 'transfer') {
+        show(accWrapper, false);
+        show(allocWrapper, false);
+        show(descGroup, false);
+        show(dateGroup, false);
+        show(fromGroup, true);
+        show(toGroup, true);
+        populateTransactionTransferEnvelopes();
+    } else {
+        show(accWrapper, type !== 'income');
+        show(allocWrapper, type !== 'income');
+        show(descGroup, true);
+        show(dateGroup, true);
+        show(fromGroup, false);
+        show(toGroup, false);
+    }
+}
+
+// Build cross-account From/To options for the transaction modal's Transfer type.
+export function populateTransactionTransfers() {
+    const fromSelect = document.getElementById('trans-from-select');
+    const toSelect = document.getElementById('trans-to-select');
+    if (!fromSelect || !toSelect) return;
+    const unassignedAcc = state.accounts.find(a => a.is_system);
+    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
+    const unassignedOption = `<option value="${unassignedValue}">Unassigned Dollars ($${(unassignedAcc ? unassignedAcc.balance : 0).toFixed(2)})</option>`;
+    let grouped = unassignedOption;
+    state.accounts.filter(a => !a.is_system).forEach(acc => {
+        const allocs = state.allocations.filter(al => al.account_id == acc.id);
+        grouped += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('') + '</optgroup>';
+    });
+    fromSelect.innerHTML = grouped;
+    toSelect.innerHTML = grouped;
+}
+
+export function populateTransactionTransferEnvelopes() {
+    populateTransactionTransfers();
 }
 
 export async function handleTransactionSubmit(e, fetchDashboard) {
     e.preventDefault();
     const id = document.getElementById('trans-id').value;
-    const isIncome = document.getElementById('trans-type').value === 'income';
+    const type = document.getElementById('trans-type').value;
+
+    // Transfer is handled by the dedicated transfer endpoint, which moves money
+    // across accounts/envelopes AND records a transfer transaction row.
+    if (type === 'transfer') {
+        const fromVal = document.getElementById('trans-from-select').value;
+        const toVal = document.getElementById('trans-to-select').value;
+        const destAlloc = !(toVal || '').toString().startsWith('unassigned')
+            ? state.allocations.find(a => a.id == toVal)
+            : null;
+        const destAccountId = destAlloc ? destAlloc.account_id : '';
+        const result = await transferAllocationApi({
+            from_allocation_id: fromVal,
+            to_allocation_id: toVal,
+            amount: document.getElementById('trans-amount').value,
+            account_id: destAccountId
+        });
+        if (result && result.success) {
+            closeModal('transactionModal');
+            fetchDashboard();
+        }
+        return;
+    }
+
+    const isIncome = type === 'income';
     const unassignedAcc = state.accounts.find(a => a.is_system);
     uiState.pendingTxData = {
         id: id || null,
@@ -181,7 +245,7 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
         date: document.getElementById('trans-date').value,
         account_id: isIncome ? (unassignedAcc ? unassignedAcc.id : document.getElementById('trans-account-select').value) : document.getElementById('trans-account-select').value,
         allocation_id: isIncome ? '' : document.getElementById('trans-alloc-select').value,
-        type: document.getElementById('trans-type').value
+        type
     };
 
     let result;

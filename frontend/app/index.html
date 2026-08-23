@@ -291,19 +291,28 @@
                         <select id="trans-type" onchange="toggleTransType()">
                             <option value="expense">Expense (-)</option>
                             <option value="income">Income (+)</option>
+                            <option value="transfer">Transfer</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-desc-group">
                         <label>Description</label>
                         <input type="text" id="trans-desc" placeholder="e.g. Coffee shop, Paycheck" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-amount-group">
                         <label>Amount ($)</label>
                         <input type="number" step="0.01" id="trans-amount" placeholder="0.00" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-date-group">
                         <label>Date</label>
                         <input type="date" id="trans-date" required>
+                    </div>
+                    <div class="form-group" id="trans-from-group" style="display:none">
+                        <label>Move From</label>
+                        <select id="trans-from-select" required></select>
+                    </div>
+                    <div class="form-group" id="trans-to-group" style="display:none">
+                        <label>Move To</label>
+                        <select id="trans-to-select" required></select>
                     </div>
                     <div class="form-group" id="trans-acc-wrapper">
                         <label>Account</label>
