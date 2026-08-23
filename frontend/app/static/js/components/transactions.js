@@ -1,7 +1,7 @@
 import { state, uiState, ICONS } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
 import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
-import { populateTransferEnvelopes } from './allocations.js';
+
 
 export function renderTransactions() {
     filterTransactions();
@@ -118,7 +118,6 @@ export function populateSelectOptions() {
     if (sliceAlloc) sliceAlloc.innerHTML = '<option value="">All Allocations</option>' + allocOptions;
 
     populateTransAllocSelect();
-    populateTransferEnvelopes();
 }
 
 export function populateTransAllocSelect() {

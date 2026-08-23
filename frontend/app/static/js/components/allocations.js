@@ -1,6 +1,6 @@
 import { state, uiState, ICONS } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
-import { createAllocationApi, updateAllocationApi, deleteAllocationApi, transferAllocationApi } from '../api.js';
+import { createAllocationApi, updateAllocationApi, deleteAllocationApi } from '../api.js';
 
 export function renderAllocations() {
     const filterAccId = document.getElementById('alloc-account-filter') ? document.getElementById('alloc-account-filter').value : '';
@@ -89,29 +89,6 @@ export function applyAllocationView() {
     if (tableWrap) tableWrap.style.display = isGrid ? 'none' : '';
 }
 
-export function populateTransferEnvelopes() {
-    // Build a cross-account list of envelopes (grouped by account) so funds
-    // can be moved between envelopes of different accounts entirely.
-    const unassignedAcc = state.accounts.find(a => a.is_system);
-    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
-    const unassignedOption = unassignedAcc
-        ? `<option value="${unassignedValue}">Unassigned Dollars ($${unassignedAcc.balance.toFixed(2)})</option>`
-        : '<option value="unassigned">Unassigned Dollars</option>';
-
-    let grouped = unassignedOption;
-    state.accounts.filter(a => !a.is_system).forEach(acc => {
-        const allocs = state.allocations.filter(al => al.account_id == acc.id);
-        grouped += `<optgroup label="${acc.name}">`
-            + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('')
-            + '</optgroup>';
-    });
-
-    const fromSelect = document.getElementById('transfer-from-select');
-    const toSelect = document.getElementById('transfer-to-select');
-    if (fromSelect) fromSelect.innerHTML = grouped;
-    if (toSelect) toSelect.innerHTML = grouped;
-}
-
 export function showAddAllocationModal() {
     document.getElementById('alloc-id').value = '';
     document.getElementById('alloc-name').value = '';
@@ -140,11 +117,6 @@ export function showEditAllocationModal(id) {
     openModal('allocationModal');
 }
 
-export function showTransferModal() {
-    populateTransferEnvelopes();
-    openModal('transferModal');
-}
-
 export async function handleAllocationSubmit(e, fetchDashboard) {
     e.preventDefault();
     const id = document.getElementById('alloc-id').value;
@@ -163,26 +135,6 @@ export async function handleAllocationSubmit(e, fetchDashboard) {
     }
 
     closeModal('allocationModal');
-    fetchDashboard();
-}
-
-export async function handleTransferSubmit(e, fetchDashboard) {
-    e.preventDefault();
-    const fromId = document.getElementById('transfer-from-select').value;
-    const toId = document.getElementById('transfer-to-select').value;
-    // Log the transfer against the destination account where the money ends up.
-    let destAccountId = '';
-    if (!(toId || '').toString().startsWith('unassigned')) {
-        const destAlloc = state.allocations.find(a => a.id == toId);
-        destAccountId = destAlloc ? destAlloc.account_id : '';
-    }
-    await transferAllocationApi({
-        from_allocation_id: fromId,
-        to_allocation_id: toId,
-        amount: document.getElementById('transfer-amount').value,
-        account_id: destAccountId
-    });
-    closeModal('transferModal');
     fetchDashboard();
 }
 
