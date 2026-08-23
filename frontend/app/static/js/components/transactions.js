@@ -172,6 +172,15 @@ export function toggleTransType() {
     const fromGroup = document.getElementById('trans-from-group');
     const toGroup = document.getElementById('trans-to-group');
     const show = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
+
+    // Fields hidden for a given type must NOT carry `required`, or the browser
+    // blocks the whole form with "An invalid form control is not focusable".
+    // Each field's `required` flag is set to match whether it is currently visible.
+    const setRequired = (id, isVisible) => {
+        const el = document.getElementById(id);
+        if (el) el.required = isVisible;
+    };
+
     if (type === 'transfer') {
         show(accWrapper, false);
         show(allocWrapper, false);
@@ -179,14 +188,23 @@ export function toggleTransType() {
         show(dateGroup, false);
         show(fromGroup, true);
         show(toGroup, true);
+
+        setRequired('trans-account-select', false);
+        setRequired('trans-desc', false);
+        setRequired('trans-date', false);
         populateTransactionTransferEnvelopes();
     } else {
-        show(accWrapper, type !== 'income');
-        show(allocWrapper, type !== 'income');
-        show(descGroup, true);
+        const isIncome = type === 'income';
+        show(accWrapper, !isIncome);
+        show(allocWrapper, !isIncome);
+        show(descGroup, !isIncome);
         show(dateGroup, true);
         show(fromGroup, false);
         show(toGroup, false);
+
+        setRequired('trans-account-select', !isIncome);
+        setRequired('trans-desc', !isIncome);
+        setRequired('trans-date', true);
     }
 }
 
