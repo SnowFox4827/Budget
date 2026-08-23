@@ -154,10 +154,30 @@ def transfer_allocation():
 
     desc = f"Transfer: {from_name} ➔ {to_name}"
     date_str = datetime.now().strftime('%Y-%m-%d')
-    cursor.execute('''
-        INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
-        VALUES (?, ?, ?, ?, NULL, 'transfer')
-    ''', (desc, amount, date_str, account_id))
+
+    # Resolve the account each side is displayed under. When a side is
+    # Unassigned Dollars, we display it under the Unassigned account id.
+    from_source_id = from_account_id if from_account_id is not None else unassigned_id
+    to_target_id = to_account_id if to_account_id is not None else unassigned_id
+
+    if from_source_id is not None and to_target_id is not None and from_source_id == to_target_id:
+        # Transfer within the same account: keep a single row so we don't
+        # double-count, and use the positive amount on the destination.
+        cursor.execute('''
+            INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
+            VALUES (?, ?, ?, ?, NULL, 'transfer')
+        ''', (desc, amount, date_str, to_target_id))
+    elif from_source_id is not None:
+        # Debit row on the source account (shown as a deduction).
+        cursor.execute('''
+            INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
+            VALUES (?, ?, ?, ?, NULL, 'transfer')
+        ''', (desc, -abs(amount), date_str, from_source_id))
+        # Credit row on the destination account (shown as an addition).
+        cursor.execute('''
+            INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
+            VALUES (?, ?, ?, ?, NULL, 'transfer')
+        ''', (desc, abs(amount), date_str, to_target_id))
     
     conn.commit()
     conn.close()

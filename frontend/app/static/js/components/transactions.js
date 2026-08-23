@@ -81,8 +81,8 @@ export function filterTransactions() {
                         ${(t.type || '').toUpperCase()}
                     </span>
                 </td>
-                <td class="text-end fw-bold ${t.type === 'expense' ? 'text-danger' : t.type === 'income' ? 'text-success' : 'text-info'}">
-                    ${t.type === 'expense' ? '-' : t.type === 'income' ? '+' : ''}$${Math.abs(t.amount || 0).toFixed(2)}
+                <td class="text-end fw-bold ${t.type === 'expense' || (t.type === 'transfer' && t.amount < 0) ? 'text-danger' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? 'text-success' : 'text-info'}">
+                    ${t.type === 'expense' ? '-' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? '+' : t.type === 'transfer' ? '-' : ''}$${Math.abs(t.amount || 0).toFixed(2)}
                 </td>
                 <td class="text-center">
                     <div class="flex center gap-2">
