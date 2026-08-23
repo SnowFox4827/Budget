@@ -136,6 +136,7 @@ export function showAddTransactionModal() {
     document.getElementById('trans-amount').value = '';
     document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('transactionModalTitle').textContent = 'Log Transaction';
+    toggleTransType();
     openModal('transactionModal');
 }
 
@@ -153,24 +154,30 @@ export function showEditTransactionModal(id) {
     document.getElementById('trans-alloc-select').value = t.allocation_id || '';
 
     document.getElementById('transactionModalTitle').textContent = 'Edit Transaction';
+    toggleTransType();
     openModal('transactionModal');
 }
 
 export function toggleTransType() {
-    const wrapper = document.getElementById('trans-alloc-wrapper');
-    if (wrapper) wrapper.style.display = 'block';
+    const type = document.getElementById('trans-type').value;
+    const accWrapper = document.getElementById('trans-acc-wrapper');
+    const allocWrapper = document.getElementById('trans-alloc-wrapper');
+    if (accWrapper) accWrapper.style.display = (type === 'income') ? 'none' : 'block';
+    if (allocWrapper) allocWrapper.style.display = (type === 'income') ? 'none' : 'block';
 }
 
 export async function handleTransactionSubmit(e, fetchDashboard) {
     e.preventDefault();
     const id = document.getElementById('trans-id').value;
+    const isIncome = document.getElementById('trans-type').value === 'income';
+    const unassignedAcc = state.accounts.find(a => a.is_system);
     uiState.pendingTxData = {
         id: id || null,
         description: document.getElementById('trans-desc').value,
         amount: document.getElementById('trans-amount').value,
         date: document.getElementById('trans-date').value,
-        account_id: document.getElementById('trans-account-select').value,
-        allocation_id: document.getElementById('trans-alloc-select').value,
+        account_id: isIncome ? (unassignedAcc ? unassignedAcc.id : document.getElementById('trans-account-select').value) : document.getElementById('trans-account-select').value,
+        allocation_id: isIncome ? '' : document.getElementById('trans-alloc-select').value,
         type: document.getElementById('trans-type').value
     };
 
