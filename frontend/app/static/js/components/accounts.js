@@ -27,7 +27,6 @@ export function renderAccounts() {
             <tr>
                 <td class="fw-semibold">${acc.name}</td>
                 <td class="text-end fw-bold text-primary">$${acc.balance.toFixed(2)}</td>
-                <td class="text-end text-dark">$${acc.allocated.toFixed(2)}</td>
                 <td class="text-center">
                     <div class="flex center gap-2">
                         ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}
@@ -35,7 +34,7 @@ export function renderAccounts() {
                     </div>
                 </td>
             </tr>
-        `).join('') || '<tr><td colspan="4" class="empty">No accounts added yet.</td></tr>';
+        `).join('') || '<tr><td colspan="3" class="empty">No accounts added yet.</td></tr>';
     }
 
     applyAccountView();
