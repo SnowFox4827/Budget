@@ -12,7 +12,7 @@ export function renderAccounts() {
                         <h5 class="fw-bold m-0">${acc.name}</h5>
                         <div class="flex gap-2">
                             <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
-                            <button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>
+                            ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                         </div>
                     </div>
                     <div class="acc-balance">$${acc.balance.toFixed(2)}</div>
@@ -34,7 +34,7 @@ export function renderAccounts() {
                 <td class="text-center">
                     <div class="flex center gap-2">
                         <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
-                        <button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>
+                        ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                     </div>
                 </td>
             </tr>

@@ -4,7 +4,9 @@ export function renderSummary() {
     const totalCash = state.accounts.reduce((acc, a) => acc + a.balance, 0);
     const totalAlloc = state.allocations.reduce((acc, a) => acc + a.amount_available, 0);
     const totalTarget = state.allocations.reduce((acc, a) => acc + a.target_amount, 0);
-    const unallocated = totalCash - totalAlloc;
+    // Unassigned Dollars live in their own protected account.
+    const unassignedAcc = state.accounts.find(a => a.is_system);
+    const unallocated = unassignedAcc ? unassignedAcc.balance : (totalCash - totalAlloc);
 
     const cashEl = document.getElementById('sumTotalCash');
     const allocEl = document.getElementById('sumTotalAllocated');

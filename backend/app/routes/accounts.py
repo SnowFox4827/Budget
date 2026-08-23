@@ -21,6 +21,10 @@ def manage_account(acc_id):
     conn = get_db()
     cursor = conn.cursor()
     if request.method == 'DELETE':
+        acc = cursor.execute('SELECT is_system FROM accounts WHERE id = ?', (acc_id,)).fetchone()
+        if acc and acc['is_system']:
+            conn.close()
+            return jsonify({'success': False, 'error': 'The Unassigned Dollars account cannot be deleted.'}), 400
         cursor.execute('DELETE FROM accounts WHERE id = ?', (acc_id,))
         conn.commit()
         conn.close()

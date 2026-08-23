@@ -92,9 +92,17 @@ export function applyAllocationView() {
 export function populateTransferEnvelopes() {
     const accSelect = document.getElementById('transfer-acc-select');
     if (!accSelect) return;
+    // One of the "envelopes" you can move money to/from is Unassigned Dollars,
+    // which is a real, protected account.
+    const unassignedAcc = state.accounts.find(a => a.is_system);
+    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
+    const unassignedOption = unassignedAcc
+        ? `<option value="${unassignedValue}">Unassigned Dollars ($${unassignedAcc.balance.toFixed(2)})</option>`
+        : '<option value="unassigned">Unassigned Dollars</option>';
+
     const accId = accSelect.value;
     const allocs = state.allocations.filter(al => al.account_id == accId);
-    const options = `<option value="unassigned_${accId}">Unassigned Pool</option>` + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('');
+    const options = unassignedOption + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('');
     
     const fromSelect = document.getElementById('transfer-from-select');
     const toSelect = document.getElementById('transfer-to-select');

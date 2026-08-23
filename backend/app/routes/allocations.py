@@ -58,27 +58,41 @@ def transfer_allocation():
     
     conn = get_db()
     cursor = conn.cursor()
-    
-    if str(from_id).startswith('unassigned'):
-        from_name = "Unassigned Funds"
+
+    unassigned_acc = cursor.execute('SELECT id FROM accounts WHERE is_system = 1').fetchone()
+    unassigned_id = unassigned_acc['id'] if unassigned_acc else None
+
+    def _is_unassigned(ref):
+        if ref is None:
+            return False
+        # The frontend sends unassigned_<accountId> to reference the Unassigned Dollars
+        # account without colliding with allocation ids.
+        return str(ref).startswith('unassigned')
+
+    if _is_unassigned(from_id):
+        from_name = "Unassigned Dollars"
+        if unassigned_id is not None:
+            cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount, unassigned_id))
     else:
         cursor.execute('UPDATE allocations SET amount_available = amount_available - ? WHERE id = ?', (amount, int(from_id)))
         from_alloc = cursor.execute('SELECT name FROM allocations WHERE id = ?', (int(from_id),)).fetchone()
         from_name = from_alloc['name'] if from_alloc else "Allocation"
-        
-    if str(to_id).startswith('unassigned'):
-        to_name = "Unassigned Funds"
+
+    if _is_unassigned(to_id):
+        to_name = "Unassigned Dollars"
+        if unassigned_id is not None:
+            cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount, unassigned_id))
     else:
         cursor.execute('UPDATE allocations SET amount_available = amount_available + ? WHERE id = ?', (amount, int(to_id)))
         to_alloc = cursor.execute('SELECT name FROM allocations WHERE id = ?', (int(to_id),)).fetchone()
         to_name = to_alloc['name'] if to_alloc else "Allocation"
-        
+
     desc = f"Transfer: {from_name} ➔ {to_name}"
     date_str = datetime.now().strftime('%Y-%m-%d')
     cursor.execute('''
         INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
         VALUES (?, ?, ?, ?, NULL, 'transfer')
-    ''', (desc, 0.0, date_str, account_id))
+    ''', (desc, amount, date_str, account_id))
     
     conn.commit()
     conn.close()
