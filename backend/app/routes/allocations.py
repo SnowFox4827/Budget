@@ -118,21 +118,39 @@ def transfer_allocation():
 
     if _is_unassigned(from_id):
         from_name = "Unassigned Dollars"
+        from_account_id = None
         if unassigned_id is not None:
             cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount, unassigned_id))
     else:
         cursor.execute('UPDATE allocations SET amount_available = amount_available - ? WHERE id = ?', (amount, int(from_id)))
-        from_alloc = cursor.execute('SELECT name FROM allocations WHERE id = ?', (int(from_id),)).fetchone()
+        from_alloc = cursor.execute('SELECT name, account_id FROM allocations WHERE id = ?', (int(from_id),)).fetchone()
         from_name = from_alloc['name'] if from_alloc else "Allocation"
+        from_account_id = from_alloc['account_id'] if from_alloc else None
 
     if _is_unassigned(to_id):
         to_name = "Unassigned Dollars"
+        to_account_id = None
         if unassigned_id is not None:
             cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount, unassigned_id))
     else:
         cursor.execute('UPDATE allocations SET amount_available = amount_available + ? WHERE id = ?', (amount, int(to_id)))
-        to_alloc = cursor.execute('SELECT name FROM allocations WHERE id = ?', (int(to_id),)).fetchone()
+        to_alloc = cursor.execute('SELECT name, account_id FROM allocations WHERE id = ?', (int(to_id),)).fetchone()
         to_name = to_alloc['name'] if to_alloc else "Allocation"
+        to_account_id = to_alloc['account_id'] if to_alloc else None
+
+    # A transfer between two different accounts (or Unassigned <-> an account)
+    # should also move the host account balances so the account totals reflect
+    # the reallocation across accounts.
+    if from_account_id is not None and to_account_id is not None and from_account_id != to_account_id:
+        # source account loses the money, destination account gains it
+        cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount, from_account_id))
+        cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount, to_account_id))
+    elif from_account_id is not None and to_account_id is None:
+        # moving out of an account envelope into Unassigned
+        cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount, from_account_id))
+    elif from_account_id is None and to_account_id is not None:
+        # moving from Unassigned into an account envelope
+        cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount, to_account_id))
 
     desc = f"Transfer: {from_name} ➔ {to_name}"
     date_str = datetime.now().strftime('%Y-%m-%d')
