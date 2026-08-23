@@ -4,6 +4,10 @@ from app.db import get_db
 
 allocations_bp = Blueprint('allocations', __name__)
 
+def _unassigned_id(cursor):
+    row = cursor.execute('SELECT id FROM accounts WHERE is_system = 1').fetchone()
+    return row['id'] if row else None
+
 @allocations_bp.route('/api/allocations', methods=['POST'])
 def add_allocation():
     data = request.json or {}
@@ -19,6 +23,11 @@ def add_allocation():
         INSERT INTO allocations (name, target_amount, amount_available, target_date, account_id)
         VALUES (?, ?, ?, ?, ?)
     ''', (name, target_amount, amount_available, target_date, account_id))
+    # Funding from Unassigned Dollars: assigning money to an envelope reduces Unassigned.
+    if amount_available > 0:
+        u = _unassigned_id(cursor)
+        if u is not None:
+            cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount_available, u))
     conn.commit()
     conn.close()
     return jsonify({'success': True})
@@ -28,7 +37,14 @@ def manage_allocation(alloc_id):
     conn = get_db()
     cursor = conn.cursor()
     if request.method == 'DELETE':
+        # Return remaining funds to Unassigned Dollars before deleting the envelope.
+        cur = cursor.execute('SELECT amount_available FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
+        available = float(cur['amount_available']) if cur else 0.0
         cursor.execute('DELETE FROM allocations WHERE id = ?', (alloc_id,))
+        if available > 0:
+            u = _unassigned_id(cursor)
+            if u is not None:
+                cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (available, u))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -39,11 +55,23 @@ def manage_allocation(alloc_id):
         amount_available = float(data.get('amount_available', 0.0))
         target_date = data.get('target_date', '')
         account_id = data.get('account_id')
+
+        # Reflect changes to assigned money in Unassigned Dollars: increasing the
+        # envelope pulls from Unassigned, decreasing it returns funds to Unassigned.
+        cur = cursor.execute('SELECT amount_available FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
+        old_available = float(cur['amount_available']) if cur else 0.0
+        delta = amount_available - old_available
+
         cursor.execute('''
-            UPDATE allocations 
+            UPDATE allocations
             SET name = ?, target_amount = ?, amount_available = ?, target_date = ?, account_id = ?
             WHERE id = ?
         ''', (name, target_amount, amount_available, target_date, account_id, alloc_id))
+
+        if cur is not None and delta != 0:
+            u = _unassigned_id(cursor)
+            if u is not None:
+                cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (delta, u))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -59,8 +87,7 @@ def transfer_allocation():
     conn = get_db()
     cursor = conn.cursor()
 
-    unassigned_acc = cursor.execute('SELECT id FROM accounts WHERE is_system = 1').fetchone()
-    unassigned_id = unassigned_acc['id'] if unassigned_acc else None
+    unassigned_id = _unassigned_id(cursor)
 
     def _is_unassigned(ref):
         if ref is None:
