@@ -98,6 +98,9 @@ export function filterTransactions() {
 export function populateSelectOptions() {
     const accOptions = state.accounts.map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
     
+    // New Allocation must land in a real account, never the protected Unassigned pool.
+    const allocRealOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+
     const allocAccSelect = document.getElementById('alloc-account-select');
     const transAccSelect = document.getElementById('trans-account-select');
     const transAccTransfer = document.getElementById('transfer-acc-select');
@@ -105,7 +108,7 @@ export function populateSelectOptions() {
     const sliceAcc = document.getElementById('slice-account');
     const sliceAlloc = document.getElementById('slice-allocation');
 
-    if (allocAccSelect) allocAccSelect.innerHTML = accOptions;
+    if (allocAccSelect) allocAccSelect.innerHTML = allocRealOptions;
     if (transAccSelect) transAccSelect.innerHTML = accOptions;
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
     // Exclude the protected Unassigned (system) account from the allocations
