@@ -17,7 +17,6 @@ export function renderAccounts() {
                     </div>
                     <div class="acc-balance">$${acc.balance.toFixed(2)}</div>
                     <div class="acc-row"><span>Allocated:</span><span class="value">$${acc.allocated.toFixed(2)}</span></div>
-                    <div class="acc-row"><span>Unassigned:</span><span class="value ${acc.unassigned < 0 ? 'neg' : 'pos'}">$${acc.unassigned.toFixed(2)}</span></div>
                 </div>
             </div>
         `).join('') || '<p class="text-muted">No accounts added yet.</p>';
@@ -30,7 +29,6 @@ export function renderAccounts() {
                 <td class="fw-semibold">${acc.name}</td>
                 <td class="text-end fw-bold text-primary">$${acc.balance.toFixed(2)}</td>
                 <td class="text-end text-dark">$${acc.allocated.toFixed(2)}</td>
-                <td class="text-end fw-semibold ${acc.unassigned < 0 ? 'text-danger' : 'text-success'}">$${acc.unassigned.toFixed(2)}</td>
                 <td class="text-center">
                     <div class="flex center gap-2">
                         <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
@@ -38,7 +36,7 @@ export function renderAccounts() {
                     </div>
                 </td>
             </tr>
-        `).join('') || '<tr><td colspan="5" class="empty">No accounts added yet.</td></tr>';
+        `).join('') || '<tr><td colspan="4" class="empty">No accounts added yet.</td></tr>';
     }
 
     applyAccountView();
