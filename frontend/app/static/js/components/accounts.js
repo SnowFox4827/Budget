@@ -81,9 +81,8 @@ export function showEditAccountNameModal(id) {
 export async function handleAccountSubmit(e, fetchDashboard) {
     e.preventDefault();
     const name = document.getElementById('acc-name').value;
-    const balance = document.getElementById('acc-balance').value;
 
-    await createAccountApi({ name, balance });
+    await createAccountApi({ name });
     closeModal('accountModal');
     fetchDashboard();
 }
