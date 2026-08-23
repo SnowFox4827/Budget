@@ -1,7 +1,7 @@
 import { state, uiState, ICONS } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
-import { createTransactionApi, updateTransactionApi, deleteTransactionApi } from '../api.js';
-import { populateTransferEnvelopes } from './allocations.js';
+import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
+
 
 export function renderTransactions() {
     filterTransactions();
@@ -81,8 +81,8 @@ export function filterTransactions() {
                         ${(t.type || '').toUpperCase()}
                     </span>
                 </td>
-                <td class="text-end fw-bold ${t.type === 'expense' ? 'text-danger' : t.type === 'income' ? 'text-success' : 'text-info'}">
-                    ${t.type === 'expense' ? '-' : t.type === 'income' ? '+' : ''}$${Math.abs(t.amount || 0).toFixed(2)}
+                <td class="text-end fw-bold ${t.type === 'expense' || (t.type === 'transfer' && t.amount < 0) ? 'text-danger' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? 'text-success' : 'text-info'}">
+                    ${t.type === 'expense' ? '-' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? '+' : t.type === 'transfer' ? '-' : ''}$${Math.abs(t.amount || 0).toFixed(2)}
                 </td>
                 <td class="text-center">
                     <div class="flex center gap-2">
@@ -98,6 +98,9 @@ export function filterTransactions() {
 export function populateSelectOptions() {
     const accOptions = state.accounts.map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
     
+    // New Allocation must land in a real account, never the protected Unassigned pool.
+    const allocRealOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+
     const allocAccSelect = document.getElementById('alloc-account-select');
     const transAccSelect = document.getElementById('trans-account-select');
     const transAccTransfer = document.getElementById('transfer-acc-select');
@@ -105,17 +108,19 @@ export function populateSelectOptions() {
     const sliceAcc = document.getElementById('slice-account');
     const sliceAlloc = document.getElementById('slice-allocation');
 
-    if (allocAccSelect) allocAccSelect.innerHTML = accOptions;
+    if (allocAccSelect) allocAccSelect.innerHTML = allocRealOptions;
     if (transAccSelect) transAccSelect.innerHTML = accOptions;
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
-    if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
-    if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + accOptions;
+    // Exclude the protected Unassigned (system) account from the allocations
+    // slicer/filter so it isn't shown as a filterable amount.
+    const realAccOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+    if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + realAccOptions;
 
     const allocOptions = state.allocations.map(al => `<option value="${al.id}">${al.name}</option>`).join('');
     if (sliceAlloc) sliceAlloc.innerHTML = '<option value="">All Allocations</option>' + allocOptions;
 
     populateTransAllocSelect();
-    populateTransferEnvelopes();
 }
 
 export function populateTransAllocSelect() {
@@ -136,6 +141,7 @@ export function showAddTransactionModal() {
     document.getElementById('trans-amount').value = '';
     document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('transactionModalTitle').textContent = 'Log Transaction';
+    toggleTransType();
     openModal('transactionModal');
 }
 
@@ -153,25 +159,113 @@ export function showEditTransactionModal(id) {
     document.getElementById('trans-alloc-select').value = t.allocation_id || '';
 
     document.getElementById('transactionModalTitle').textContent = 'Edit Transaction';
+    toggleTransType();
     openModal('transactionModal');
 }
 
 export function toggleTransType() {
-    const wrapper = document.getElementById('trans-alloc-wrapper');
-    if (wrapper) wrapper.style.display = 'block';
+    const type = document.getElementById('trans-type').value;
+    const accWrapper = document.getElementById('trans-acc-wrapper');
+    const allocWrapper = document.getElementById('trans-alloc-wrapper');
+    const descGroup = document.getElementById('trans-desc-group');
+    const dateGroup = document.getElementById('trans-date-group');
+    const fromGroup = document.getElementById('trans-from-group');
+    const toGroup = document.getElementById('trans-to-group');
+    const show = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
+
+    // Fields hidden for a given type must NOT carry `required`, or the browser
+    // blocks the whole form with "An invalid form control is not focusable".
+    // Each field's `required` flag is set to match whether it is currently visible.
+    const setRequired = (id, isVisible) => {
+        const el = document.getElementById(id);
+        if (el) el.required = isVisible;
+    };
+
+    if (type === 'transfer') {
+        show(accWrapper, false);
+        show(allocWrapper, false);
+        show(descGroup, false);
+        show(dateGroup, false);
+        show(fromGroup, true);
+        show(toGroup, true);
+
+        setRequired('trans-account-select', false);
+        setRequired('trans-desc', false);
+        setRequired('trans-date', false);
+        populateTransactionTransferEnvelopes();
+    } else {
+        const isIncome = type === 'income';
+        show(accWrapper, !isIncome);
+        show(allocWrapper, !isIncome);
+        show(descGroup, !isIncome);
+        show(dateGroup, true);
+        show(fromGroup, false);
+        show(toGroup, false);
+
+        setRequired('trans-account-select', !isIncome);
+        setRequired('trans-desc', !isIncome);
+        setRequired('trans-date', true);
+    }
+}
+
+// Build cross-account From/To options for the transaction modal's Transfer type.
+export function populateTransactionTransfers() {
+    const fromSelect = document.getElementById('trans-from-select');
+    const toSelect = document.getElementById('trans-to-select');
+    if (!fromSelect || !toSelect) return;
+    const unassignedAcc = state.accounts.find(a => a.is_system);
+    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
+    const unassignedOption = `<option value="${unassignedValue}">Unassigned Dollars ($${(unassignedAcc ? unassignedAcc.balance : 0).toFixed(2)})</option>`;
+    let grouped = unassignedOption;
+    state.accounts.filter(a => !a.is_system).forEach(acc => {
+        const allocs = state.allocations.filter(al => al.account_id == acc.id);
+        grouped += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('') + '</optgroup>';
+    });
+    fromSelect.innerHTML = grouped;
+    toSelect.innerHTML = grouped;
+}
+
+export function populateTransactionTransferEnvelopes() {
+    populateTransactionTransfers();
 }
 
 export async function handleTransactionSubmit(e, fetchDashboard) {
     e.preventDefault();
     const id = document.getElementById('trans-id').value;
+    const type = document.getElementById('trans-type').value;
+
+    // Transfer is handled by the dedicated transfer endpoint, which moves money
+    // across accounts/envelopes AND records a transfer transaction row.
+    if (type === 'transfer') {
+        const fromVal = document.getElementById('trans-from-select').value;
+        const toVal = document.getElementById('trans-to-select').value;
+        const destAlloc = !(toVal || '').toString().startsWith('unassigned')
+            ? state.allocations.find(a => a.id == toVal)
+            : null;
+        const destAccountId = destAlloc ? destAlloc.account_id : '';
+        const result = await transferAllocationApi({
+            from_allocation_id: fromVal,
+            to_allocation_id: toVal,
+            amount: document.getElementById('trans-amount').value,
+            account_id: destAccountId
+        });
+        if (result && result.success) {
+            closeModal('transactionModal');
+            fetchDashboard();
+        }
+        return;
+    }
+
+    const isIncome = type === 'income';
+    const unassignedAcc = state.accounts.find(a => a.is_system);
     uiState.pendingTxData = {
         id: id || null,
         description: document.getElementById('trans-desc').value,
         amount: document.getElementById('trans-amount').value,
         date: document.getElementById('trans-date').value,
-        account_id: document.getElementById('trans-account-select').value,
-        allocation_id: document.getElementById('trans-alloc-select').value,
-        type: document.getElementById('trans-type').value
+        account_id: isIncome ? (unassignedAcc ? unassignedAcc.id : document.getElementById('trans-account-select').value) : document.getElementById('trans-account-select').value,
+        allocation_id: isIncome ? '' : document.getElementById('trans-alloc-select').value,
+        type
     };
 
     let result;

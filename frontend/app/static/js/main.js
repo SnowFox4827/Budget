@@ -15,12 +15,9 @@ import {
 import {
     renderAllocations,
     setAllocationView,
-    populateTransferEnvelopes,
     showAddAllocationModal,
     showEditAllocationModal,
-    showTransferModal,
     handleAllocationSubmit,
-    handleTransferSubmit,
     deleteAllocation
 } from './components/allocations.js';
 import {
@@ -73,10 +70,8 @@ window.deleteAccount = (id) => deleteAccount(id, fetchDashboard);
 
 // Allocation handlers
 window.setAllocationView = setAllocationView;
-window.populateTransferEnvelopes = populateTransferEnvelopes;
 window.showAddAllocationModal = showAddAllocationModal;
 window.showEditAllocationModal = showEditAllocationModal;
-window.showTransferModal = showTransferModal;
 window.deleteAllocation = (id) => deleteAllocation(id, fetchDashboard);
 
 // Transaction handlers
@@ -115,11 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const transactionForm = document.getElementById('transactionForm');
     if (transactionForm) {
         transactionForm.addEventListener('submit', (e) => handleTransactionSubmit(e, fetchDashboard));
-    }
-
-    const transferForm = document.getElementById('transferForm');
-    if (transferForm) {
-        transferForm.addEventListener('submit', (e) => handleTransferSubmit(e, fetchDashboard));
     }
 
     // Allocation account filter

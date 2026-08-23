@@ -4,6 +4,9 @@ import os
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 DB_PATH = os.path.join(DATA_DIR, 'budget.db')
 
+# The name of the protected account that holds Unassigned Dollars.
+UNASSIGNED_ACCOUNT_NAME = 'Unassigned Dollars'
+
 def get_db():
     """Connect to SQLite database and return connection with Row factory."""
     if not os.path.exists(DATA_DIR):
@@ -22,9 +25,27 @@ def init_db():
         CREATE TABLE IF NOT EXISTS accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            balance REAL DEFAULT 0.0
+            balance REAL DEFAULT 0.0,
+            is_system INTEGER DEFAULT 0
         )
     ''')
+
+    # Ensure the protected "Unassigned Dollars" system account exists (idempotent).
+    existing = cursor.execute(
+        'SELECT id, is_system FROM accounts WHERE is_system = 1 OR name = ?',
+        (UNASSIGNED_ACCOUNT_NAME,)
+    ).fetchone()
+    if not existing:
+        cursor.execute(
+            'INSERT INTO accounts (name, balance, is_system) VALUES (?, 0.0, 1)',
+            (UNASSIGNED_ACCOUNT_NAME,)
+        )
+    elif existing['is_system'] != 1:
+        # A pre-existing account already carried this name; promote it to the protected system account.
+        cursor.execute(
+            'UPDATE accounts SET is_system = 1 WHERE id = ?',
+            (existing['id'],)
+        )
     
     # Allocations
     cursor.execute('''

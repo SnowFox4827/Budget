@@ -69,10 +69,6 @@
                 </select>
             </div>
             <div class="right">
-                <button class="btn btn-sm btn-outline-secondary" onclick="showTransferModal()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M1 8a.5.5 0 0 1 .5-.5h11.793l-6.147-6.146a.5.5 0 1 1 .708-.708l7 7a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/></svg>
-                    Reallocate Funds
-                </button>
                 <button class="btn btn-sm btn-primary" onclick="showAddAllocationModal()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
                     Add Allocation
@@ -134,8 +130,6 @@
                     <tr>
                         <th>Name</th>
                         <th class="text-end">Balance</th>
-                        <th class="text-end">Allocated</th>
-                        <th class="text-end">Unassigned</th>
                         <th class="text-center">Action</th>
                     </tr>
                 </thead>
@@ -210,10 +204,6 @@
                         <label>Account Name</label>
                         <input type="text" id="acc-name" placeholder="e.g. Checking Account" required>
                     </div>
-                    <div class="form-group">
-                        <label>Initial Balance ($)</label>
-                        <input type="number" step="0.01" id="acc-balance" value="0.00" required>
-                    </div>
                     <button type="submit" class="btn btn-primary w-100">Save Account</button>
                 </form>
             </div>
@@ -263,7 +253,7 @@
                         <input type="number" step="0.01" id="alloc-target" value="0.00" required>
                     </div>
                     <div class="form-group">
-                        <label>Amount Currently Available ($)</label>
+                        <label>Amount to Assign From Unassigned ($)</label>
                         <input type="number" step="0.01" id="alloc-avail" value="0.00" required>
                     </div>
                     <div class="form-group">
@@ -297,21 +287,30 @@
                         <select id="trans-type" onchange="toggleTransType()">
                             <option value="expense">Expense (-)</option>
                             <option value="income">Income (+)</option>
+                            <option value="transfer">Transfer</option>
                         </select>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-desc-group">
                         <label>Description</label>
                         <input type="text" id="trans-desc" placeholder="e.g. Coffee shop, Paycheck" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-amount-group">
                         <label>Amount ($)</label>
                         <input type="number" step="0.01" id="trans-amount" placeholder="0.00" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-date-group">
                         <label>Date</label>
                         <input type="date" id="trans-date" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="trans-from-group" style="display:none">
+                        <label>Move From</label>
+                        <select id="trans-from-select" required></select>
+                    </div>
+                    <div class="form-group" id="trans-to-group" style="display:none">
+                        <label>Move To</label>
+                        <select id="trans-to-select" required></select>
+                    </div>
+                    <div class="form-group" id="trans-acc-wrapper">
                         <label>Account</label>
                         <select id="trans-account-select" required></select>
                     </div>
@@ -342,39 +341,6 @@
                     <select id="overspend-cover-select"></select>
                 </div>
                 <button type="button" class="btn btn-danger w-100" onclick="resolveOverspend()">Confirm &amp; Complete Transaction</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Reallocate / Transfer Modal -->
-<div class="modal" id="transferModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Reallocate / Move Funds</h5>
-                <button type="button" class="btn-close" onclick="closeModal('transferModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="transferForm">
-                    <div class="form-group">
-                        <label>Account</label>
-                        <select id="transfer-acc-select" onchange="populateTransferEnvelopes()" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Move From</label>
-                        <select id="transfer-from-select" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Move To</label>
-                        <select id="transfer-to-select" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Amount ($)</label>
-                        <input type="number" step="0.01" id="transfer-amount" placeholder="0.00" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Complete Reallocation</button>
-                </form>
             </div>
         </div>
     </div>

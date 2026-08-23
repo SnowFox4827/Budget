@@ -21,6 +21,10 @@ def manage_account(acc_id):
     conn = get_db()
     cursor = conn.cursor()
     if request.method == 'DELETE':
+        acc = cursor.execute('SELECT is_system FROM accounts WHERE id = ?', (acc_id,)).fetchone()
+        if acc and acc['is_system']:
+            conn.close()
+            return jsonify({'success': False, 'error': 'The Unassigned Dollars account cannot be deleted.'}), 400
         cursor.execute('DELETE FROM accounts WHERE id = ?', (acc_id,))
         conn.commit()
         conn.close()
@@ -29,6 +33,10 @@ def manage_account(acc_id):
         data = request.json or {}
         name = data.get('name')
         balance = float(data.get('balance', 0.0))
+        acc = cursor.execute('SELECT name, is_system FROM accounts WHERE id = ?', (acc_id,)).fetchone()
+        if acc and acc['is_system'] and name != acc['name']:
+            conn.close()
+            return jsonify({'success': False, 'error': 'The Unassigned Dollars account name cannot be changed.'}), 400
         cursor.execute('UPDATE accounts SET name = ?, balance = ? WHERE id = ?', (name, balance, acc_id))
         conn.commit()
         conn.close()

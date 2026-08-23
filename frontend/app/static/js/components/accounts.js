@@ -8,16 +8,14 @@ export function renderAccounts() {
         container.innerHTML = state.accounts.map(acc => `
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="flex space-between align-center mb-2">
+                    <div class="flex between align-center mb-2">
                         <h5 class="fw-bold m-0">${acc.name}</h5>
                         <div class="flex gap-2">
-                            <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
-                            <button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>
+                            ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}
+                            ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                         </div>
                     </div>
                     <div class="acc-balance">$${acc.balance.toFixed(2)}</div>
-                    <div class="acc-row"><span>Allocated:</span><span class="value">$${acc.allocated.toFixed(2)}</span></div>
-                    <div class="acc-row"><span>Unassigned:</span><span class="value ${acc.unassigned < 0 ? 'neg' : 'pos'}">$${acc.unassigned.toFixed(2)}</span></div>
                 </div>
             </div>
         `).join('') || '<p class="text-muted">No accounts added yet.</p>';
@@ -29,16 +27,14 @@ export function renderAccounts() {
             <tr>
                 <td class="fw-semibold">${acc.name}</td>
                 <td class="text-end fw-bold text-primary">$${acc.balance.toFixed(2)}</td>
-                <td class="text-end text-dark">$${acc.allocated.toFixed(2)}</td>
-                <td class="text-end fw-semibold ${acc.unassigned < 0 ? 'text-danger' : 'text-success'}">$${acc.unassigned.toFixed(2)}</td>
                 <td class="text-center">
                     <div class="flex center gap-2">
-                        <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
-                        <button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>
+                        ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}
+                        ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                     </div>
                 </td>
             </tr>
-        `).join('') || '<tr><td colspan="5" class="empty">No accounts added yet.</td></tr>';
+        `).join('') || '<tr><td colspan="3" class="empty">No accounts added yet.</td></tr>';
     }
 
     applyAccountView();
@@ -83,9 +79,8 @@ export function showEditAccountNameModal(id) {
 export async function handleAccountSubmit(e, fetchDashboard) {
     e.preventDefault();
     const name = document.getElementById('acc-name').value;
-    const balance = document.getElementById('acc-balance').value;
 
-    await createAccountApi({ name, balance });
+    await createAccountApi({ name });
     closeModal('accountModal');
     fetchDashboard();
 }

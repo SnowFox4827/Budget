@@ -4,6 +4,11 @@ from app.db import get_db
 
 transactions_bp = Blueprint('transactions', __name__)
 
+def get_unassigned_id(cursor):
+    row = cursor.execute('SELECT id FROM accounts WHERE is_system = 1').fetchone()
+    return row['id'] if row else None
+
+
 def revert_transaction_effect(cursor, tx):
     tx_type = tx['type']
     amount = abs(tx['amount'])
@@ -59,6 +64,8 @@ def add_transaction():
         cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (abs(amount), account_id))
 
     elif trans_type == 'income':
+        # Income always flows directly into the protected Unassigned Dollars account.
+        account_id = get_unassigned_id(cursor) or account_id
         cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (abs(amount), account_id))
         if allocation_id:
             cursor.execute('UPDATE allocations SET amount_available = amount_available + ? WHERE id = ?', (abs(amount), allocation_id))
@@ -128,6 +135,8 @@ def manage_transaction(trans_id):
             cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (abs(amount), account_id))
 
         elif trans_type == 'income':
+            # Income always flows directly into the protected Unassigned Dollars account.
+            account_id = get_unassigned_id(cursor) or account_id
             cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (abs(amount), account_id))
             if allocation_id:
                 cursor.execute('UPDATE allocations SET amount_available = amount_available + ? WHERE id = ?', (abs(amount), allocation_id))
