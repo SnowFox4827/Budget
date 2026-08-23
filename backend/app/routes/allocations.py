@@ -29,6 +29,7 @@ def add_allocation():
         INSERT INTO allocations (name, target_amount, amount_available, target_date, account_id)
         VALUES (?, ?, ?, ?, ?)
     ''', (name, target_amount, amount_available, target_date, account_id))
+    alloc_id = cursor.lastrowid
     # Funding from Unassigned Dollars: assigning money to an envelope reduces
     # Unassigned and raises the owning account's total (if it's a real, non-system account).
     if amount_available > 0:
@@ -36,6 +37,20 @@ def add_allocation():
         if u is not None and (account_id is None or int(account_id) != u):
             cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount_available, u))
             cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount_available, int(account_id)))
+            # Reflect the assignment from Unassigned in the transaction table so it
+            # shows up in the Transactions view: a debit on Unassigned and a credit
+            # on the owning account.
+            owner_id = int(account_id)
+            date_str = datetime.now().strftime('%Y-%m-%d')
+            desc = f"New allocation: {name}"
+            cursor.execute('''
+                INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
+                VALUES (?, ?, ?, ?, ?, 'transfer')
+            ''', (desc, -abs(amount_available), date_str, u, alloc_id))
+            cursor.execute('''
+                INSERT INTO transactions (description, amount, date, account_id, allocation_id, type)
+                VALUES (?, ?, ?, ?, ?, 'transfer')
+            ''', (desc, abs(amount_available), date_str, owner_id, alloc_id))
         elif u is not None:
             # Funding Unassigned's own envelope keeps Unassigned neutral.
             pass
