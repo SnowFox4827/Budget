@@ -8,6 +8,12 @@ def _unassigned_id(cursor):
     row = cursor.execute('SELECT id FROM accounts WHERE is_system = 1').fetchone()
     return row['id'] if row else None
 
+def _is_system_account(cursor, account_id):
+    if account_id is None:
+        return False
+    row = cursor.execute('SELECT is_system FROM accounts WHERE id = ?', (int(account_id),)).fetchone()
+    return bool(row and row['is_system'])
+
 @allocations_bp.route('/api/allocations', methods=['POST'])
 def add_allocation():
     data = request.json or {}
@@ -23,11 +29,16 @@ def add_allocation():
         INSERT INTO allocations (name, target_amount, amount_available, target_date, account_id)
         VALUES (?, ?, ?, ?, ?)
     ''', (name, target_amount, amount_available, target_date, account_id))
-    # Funding from Unassigned Dollars: assigning money to an envelope reduces Unassigned.
+    # Funding from Unassigned Dollars: assigning money to an envelope reduces
+    # Unassigned and raises the owning account's total (if it's a real, non-system account).
     if amount_available > 0:
         u = _unassigned_id(cursor)
-        if u is not None:
+        if u is not None and (account_id is None or int(account_id) != u):
             cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (amount_available, u))
+            cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (amount_available, int(account_id)))
+        elif u is not None:
+            # Funding Unassigned's own envelope keeps Unassigned neutral.
+            pass
     conn.commit()
     conn.close()
     return jsonify({'success': True})
@@ -37,14 +48,18 @@ def manage_allocation(alloc_id):
     conn = get_db()
     cursor = conn.cursor()
     if request.method == 'DELETE':
-        # Return remaining funds to Unassigned Dollars before deleting the envelope.
-        cur = cursor.execute('SELECT amount_available FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
+        # Return remaining funds to Unassigned Dollars and, if the envelope belongs
+        # to a real account, remove that funding from the account's total as well.
+        cur = cursor.execute('SELECT amount_available, account_id FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
         available = float(cur['amount_available']) if cur else 0.0
+        owner = cur['account_id'] if cur else None
         cursor.execute('DELETE FROM allocations WHERE id = ?', (alloc_id,))
         if available > 0:
             u = _unassigned_id(cursor)
             if u is not None:
                 cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (available, u))
+            if owner is not None and (u is None or int(owner) != u):
+                cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (available, int(owner)))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -56,8 +71,8 @@ def manage_allocation(alloc_id):
         target_date = data.get('target_date', '')
         account_id = data.get('account_id')
 
-        # Reflect changes to assigned money in Unassigned Dollars: increasing the
-        # envelope pulls from Unassigned, decreasing it returns funds to Unassigned.
+        # Reflect changes to assigned money: increasing the envelope pulls funds from
+        # Unassigned into the owning account's total; decreasing returns them.
         cur = cursor.execute('SELECT amount_available FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
         old_available = float(cur['amount_available']) if cur else 0.0
         delta = amount_available - old_available
@@ -70,8 +85,13 @@ def manage_allocation(alloc_id):
 
         if cur is not None and delta != 0:
             u = _unassigned_id(cursor)
-            if u is not None:
+            if u is not None and (account_id is None or int(account_id) != u):
+                # Money moves between Unassigned and the real account that owns the envelope.
                 cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (delta, u))
+                cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (delta, int(account_id)))
+            elif u is not None:
+                # Envelope owned by Unassigned itself stays neutral.
+                pass
         conn.commit()
         conn.close()
         return jsonify({'success': True})
