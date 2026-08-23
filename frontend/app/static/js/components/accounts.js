@@ -11,7 +11,7 @@ export function renderAccounts() {
                     <div class="flex space-between align-center mb-2">
                         <h5 class="fw-bold m-0">${acc.name}</h5>
                         <div class="flex gap-2">
-                            <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
+                            ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}
                             ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                         </div>
                     </div>
@@ -31,7 +31,7 @@ export function renderAccounts() {
                 <td class="text-end text-dark">$${acc.allocated.toFixed(2)}</td>
                 <td class="text-center">
                     <div class="flex center gap-2">
-                        <button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>
+                        ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}
                         ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                     </div>
                 </td>
