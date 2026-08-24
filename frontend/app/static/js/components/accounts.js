@@ -1,4 +1,4 @@
-import { state, uiState, ICONS } from '../state.js';
+import { state, uiState, ICONS, fmtMoney } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
 import { createAccountApi, updateAccountApi, deleteAccountApi } from '../api.js';
 
@@ -15,7 +15,7 @@ export function renderAccounts() {
                             ${acc.is_system ? '' : `<button class="btn-link text-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">${ICONS.trash}</button>`}
                         </div>
                     </div>
-                    <div class="acc-balance">$${acc.balance.toFixed(2)}</div>
+                    <div class="acc-balance">$${fmtMoney(acc.balance)}</div>
                 </div>
             </div>
         `).join('') || '<p class="text-muted">No accounts added yet.</p>';
@@ -26,7 +26,7 @@ export function renderAccounts() {
         tbody.innerHTML = state.accounts.map(acc => `
             <tr>
                 <td class="fw-semibold">${acc.name}</td>
-                <td class="text-end fw-bold text-primary">$${acc.balance.toFixed(2)}</td>
+                <td class="text-end fw-bold text-primary">$${fmtMoney(acc.balance)}</td>
                 <td class="text-center">
                     <div class="flex center gap-2">
                         ${acc.is_system ? '' : `<button class="btn-link text-primary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">${ICONS.edit}</button>`}

@@ -1,4 +1,4 @@
-import { state, uiState, ICONS } from '../state.js';
+import { state, uiState, ICONS, fmtMoney } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
 import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
 
@@ -82,7 +82,7 @@ export function filterTransactions() {
                     </span>
                 </td>
                 <td class="text-end fw-bold ${t.type === 'expense' || (t.type === 'transfer' && t.amount < 0) ? 'text-danger' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? 'text-success' : 'text-info'}">
-                    ${t.type === 'expense' ? '-' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? '+' : t.type === 'transfer' ? '-' : ''}$${Math.abs(t.amount || 0).toFixed(2)}
+                    ${t.type === 'expense' ? '-' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? '+' : t.type === 'transfer' ? '-' : ''}$${fmtMoney(Math.abs(t.amount || 0))}
                 </td>
                 <td class="text-center">
                     <div class="flex center gap-2">
@@ -96,10 +96,10 @@ export function filterTransactions() {
 }
 
 export function populateSelectOptions() {
-    const accOptions = state.accounts.map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+    const accOptions = state.accounts.map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
     
     // New Allocation must land in a real account, never the protected Unassigned pool.
-    const allocRealOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+    const allocRealOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
 
     const allocAccSelect = document.getElementById('alloc-account-select');
     const transAccSelect = document.getElementById('trans-account-select');
@@ -113,7 +113,7 @@ export function populateSelectOptions() {
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
     // Exclude the protected Unassigned (system) account from the allocations
     // slicer/filter so it isn't shown as a filterable amount.
-    const realAccOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${a.balance.toFixed(2)})</option>`).join('');
+    const realAccOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
     if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
     if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + realAccOptions;
 
@@ -130,7 +130,7 @@ export function populateTransAllocSelect() {
     const allocs = state.allocations.filter(al => al.account_id == accId);
     const transAllocSelect = document.getElementById('trans-alloc-select');
     if (transAllocSelect) {
-        transAllocSelect.innerHTML = '<option value="">(None / Unassigned)</option>' + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('');
+        transAllocSelect.innerHTML = '<option value="">(None / Unassigned)</option>' + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('');
     }
 }
 
@@ -192,7 +192,9 @@ export function toggleTransType() {
         setRequired('trans-account-select', false);
         setRequired('trans-desc', false);
         setRequired('trans-date', false);
-        populateTransactionTransferEnvelopes();
+        setRequired('trans-from-select', true);
+        setRequired('trans-to-select', true);
+        populateTransactionTransfers();
     } else {
         const isIncome = type === 'income';
         show(accWrapper, !isIncome);
@@ -205,6 +207,8 @@ export function toggleTransType() {
         setRequired('trans-account-select', !isIncome);
         setRequired('trans-desc', !isIncome);
         setRequired('trans-date', true);
+        setRequired('trans-from-select', false);
+        setRequired('trans-to-select', false);
     }
 }
 
@@ -215,11 +219,11 @@ export function populateTransactionTransfers() {
     if (!fromSelect || !toSelect) return;
     const unassignedAcc = state.accounts.find(a => a.is_system);
     const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
-    const unassignedOption = `<option value="${unassignedValue}">Unassigned Dollars ($${(unassignedAcc ? unassignedAcc.balance : 0).toFixed(2)})</option>`;
+    const unassignedOption = `<option value="${unassignedValue}">Unassigned Dollars ($${fmtMoney(unassignedAcc ? unassignedAcc.balance : 0)})</option>`;
     let grouped = unassignedOption;
     state.accounts.filter(a => !a.is_system).forEach(acc => {
         const allocs = state.allocations.filter(al => al.account_id == acc.id);
-        grouped += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('') + '</optgroup>';
+        grouped += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('') + '</optgroup>';
     });
     fromSelect.innerHTML = grouped;
     toSelect.innerHTML = grouped;
@@ -285,7 +289,7 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
         if (coverSelect) {
             coverSelect.innerHTML =
                 `<option value="unassigned">Unassigned Pool</option>` +
-                allocs.map(al => `<option value="${al.id}">${al.name} ($${al.amount_available.toFixed(2)})</option>`).join('');
+                allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('');
         }
 
         closeModal('transactionModal');
@@ -298,7 +302,9 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
 
 export async function resolveOverspend(fetchDashboard) {
     const coverSource = document.getElementById('overspend-cover-select').value;
-    uiState.pendingTxData.cover_from_alloc_id = coverSource;
+    if (coverSource) {
+        uiState.pendingTxData.cover_from_alloc_id = coverSource;
+    }
 
     if (uiState.pendingTxData.id) {
         await updateTransactionApi(uiState.pendingTxData.id, uiState.pendingTxData);
