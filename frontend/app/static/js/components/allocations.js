@@ -1,4 +1,4 @@
-import { state, uiState, ICONS } from '../state.js';
+import { state, uiState, ICONS, fmtMoney } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
 import { createAllocationApi, updateAllocationApi, deleteAllocationApi } from '../api.js';
 
@@ -22,8 +22,8 @@ export function renderAllocations() {
                         </div>
                         <span class="badge mb-2">${al.account_name || 'Unassigned Acc'}</span>
                         <div class="flex between align-baseline mb-1">
-                            <span class="alloc-avail">$${al.amount_available.toFixed(2)}</span>
-                            <span class="goal">Goal: $${al.target_amount.toFixed(2)}</span>
+                            <span class="alloc-avail">$${fmtMoney(al.amount_available)}</span>
+                            <span class="goal">Goal: $${fmtMoney(al.target_amount)}</span>
                         </div>
                         <div class="progress mb-2">
                             <div class="progress-bar ${pct >= 100 ? 'done' : ''}" style="width: ${pct}%"></div>
@@ -46,8 +46,8 @@ export function renderAllocations() {
                 <tr>
                     <td class="fw-semibold">${al.name}</td>
                     <td><span class="badge">${al.account_name || 'Unassigned Acc'}</span></td>
-                    <td class="text-end fw-bold text-dark">$${al.amount_available.toFixed(2)}</td>
-                    <td class="text-end text-muted">$${al.target_amount.toFixed(2)}</td>
+                    <td class="text-end fw-bold text-dark">$${fmtMoney(al.amount_available)}</td>
+                    <td class="text-end text-muted">$${fmtMoney(al.target_amount)}</td>
                     <td>
                         <div class="flex gap-2 align-center">
                             <div class="progress progress-sm progress-inline">
