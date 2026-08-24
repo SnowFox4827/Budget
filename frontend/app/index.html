@@ -378,6 +378,35 @@
                         Create Instant Snapshot on NAS / Server
                     </button>
                 </div>
+
+                <hr class="my-3">
+
+                <!-- Restore Section -->
+                <div>
+                    <h6 class="fw-bold mb-2 flex align-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/></svg>
+                        Restore from Backup
+                    </h6>
+
+                    <!-- Upload File Restore -->
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">Restore from File (.json or .db)</label>
+                        <div class="flex gap-2">
+                            <input type="file" id="backup-restore-file" accept=".json,.db,.sqlite,.sqlite3" class="form-control" style="font-size: 0.85rem;">
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="btn-restore-file" onclick="handleFileRestore()" style="white-space: nowrap;">
+                                Restore File
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Server Snapshots List -->
+                    <div>
+                        <label class="small text-muted mb-1">Restore from Server Snapshot</label>
+                        <div id="backup-snapshots-list" class="flex col gap-1" style="max-height: 160px; overflow-y: auto;">
+                            <div class="text-muted small">No snapshots available</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

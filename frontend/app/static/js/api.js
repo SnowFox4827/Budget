@@ -103,3 +103,20 @@ export async function triggerSnapshotApi() {
     });
     return res.json();
 }
+
+export async function restoreBackupUploadApi(formData) {
+    const res = await fetch('/api/backup/restore/upload', {
+        method: 'POST',
+        body: formData
+    });
+    return res.json();
+}
+
+export async function restoreSnapshotApi(snapshotName) {
+    const res = await fetch('/api/backup/restore/snapshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ snapshot_name: snapshotName })
+    });
+    return res.json();
+}

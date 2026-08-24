@@ -35,7 +35,9 @@ import {
 import {
     showBackupModal,
     downloadBackup,
-    triggerServerSnapshot
+    triggerServerSnapshot,
+    handleFileRestore,
+    handleSnapshotRestore
 } from './components/backup.js';
 
 // Global Data Fetch
@@ -86,6 +88,8 @@ window.deleteTransaction = (id) => deleteTransaction(id, fetchDashboard);
 window.showBackupModal = showBackupModal;
 window.downloadBackup = downloadBackup;
 window.triggerServerSnapshot = triggerServerSnapshot;
+window.handleFileRestore = handleFileRestore;
+window.handleSnapshotRestore = handleSnapshotRestore;
 
 // Setup form listeners and filters on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
