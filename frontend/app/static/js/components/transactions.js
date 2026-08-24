@@ -194,7 +194,7 @@ export function toggleTransType() {
         setRequired('trans-date', false);
         setRequired('trans-from-select', true);
         setRequired('trans-to-select', true);
-        populateTransactionTransferEnvelopes();
+        populateTransactionTransfers();
     } else {
         const isIncome = type === 'income';
         show(accWrapper, !isIncome);
@@ -207,6 +207,8 @@ export function toggleTransType() {
         setRequired('trans-account-select', !isIncome);
         setRequired('trans-desc', !isIncome);
         setRequired('trans-date', true);
+        setRequired('trans-from-select', false);
+        setRequired('trans-to-select', false);
     }
 }
 
