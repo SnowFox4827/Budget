@@ -192,6 +192,8 @@ export function toggleTransType() {
         setRequired('trans-account-select', false);
         setRequired('trans-desc', false);
         setRequired('trans-date', false);
+        setRequired('trans-from-select', true);
+        setRequired('trans-to-select', true);
         populateTransactionTransferEnvelopes();
     } else {
         const isIncome = type === 'income';
@@ -298,7 +300,9 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
 
 export async function resolveOverspend(fetchDashboard) {
     const coverSource = document.getElementById('overspend-cover-select').value;
-    uiState.pendingTxData.cover_from_alloc_id = coverSource;
+    if (coverSource) {
+        uiState.pendingTxData.cover_from_alloc_id = coverSource;
+    }
 
     if (uiState.pendingTxData.id) {
         await updateTransactionApi(uiState.pendingTxData.id, uiState.pendingTxData);
