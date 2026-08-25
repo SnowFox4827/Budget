@@ -28,7 +28,7 @@ export function renderAccounts() {
                 <td class="fw-semibold">${acc.name}</td>
                 <td class="text-end fw-bold text-primary">$${fmtMoney(acc.balance)}</td>
                 <td class="text-center">
-                    <div class="flex center gap-2">
+                    <div class="flex center gap-1">
                         ${acc.is_system ? '' : `<button class="btn btn-xs btn-outline-secondary" onclick="window.showEditAccountNameModal(${acc.id})" title="Edit Account Name">Edit</button>`}
                         ${acc.is_system ? '' : `<button class="btn btn-xs btn-outline-danger" onclick="window.deleteAccount(${acc.id})" title="Delete Account">Delete</button>`}
                     </div>

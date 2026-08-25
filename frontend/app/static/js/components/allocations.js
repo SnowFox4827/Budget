@@ -58,7 +58,7 @@ export function renderAllocations() {
                     </td>
                     <td class="small">${al.target_date || '-'}</td>
                     <td class="text-center">
-                        <div class="flex center gap-2">
+                        <div class="flex center gap-1">
                             <button class="btn btn-xs btn-outline-secondary" onclick="window.showEditAllocationModal(${al.id})" title="Edit Allocation">Edit</button>
                             <button class="btn btn-xs btn-outline-danger" onclick="window.deleteAllocation(${al.id})" title="Delete Allocation">Delete</button>
                         </div>

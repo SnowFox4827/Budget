@@ -85,7 +85,7 @@ export function filterTransactions() {
                     ${t.type === 'expense' ? '-' : t.type === 'income' || (t.type === 'transfer' && t.amount > 0) ? '+' : t.type === 'transfer' ? '-' : ''}$${fmtMoney(Math.abs(t.amount || 0))}
                 </td>
                 <td class="text-center">
-                    <div class="flex center gap-2">
+                    <div class="flex center gap-1">
                         ${t.type !== 'transfer' ? `<button class="btn btn-xs btn-outline-secondary" onclick="window.showEditTransactionModal(${t.id})" title="Edit Transaction">Edit</button>` : ''}
                         <button class="btn btn-xs btn-outline-danger" onclick="window.deleteTransaction(${t.id})" title="Delete Transaction">Delete</button>
                     </div>
