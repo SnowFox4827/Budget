@@ -1,4 +1,4 @@
-import { state, uiState, ICONS, fmtMoney } from '../state.js';
+import { state, uiState, fmtMoney } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
 import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
 
@@ -86,8 +86,8 @@ export function filterTransactions() {
                 </td>
                 <td class="text-center">
                     <div class="flex center gap-2">
-                        ${t.type !== 'transfer' ? `<button class="btn-link text-primary" onclick="window.showEditTransactionModal(${t.id})" title="Edit Transaction">${ICONS.edit}</button>` : ''}
-                        <button class="btn-link text-danger" onclick="window.deleteTransaction(${t.id})" title="Delete Transaction">${ICONS.trash}</button>
+                        ${t.type !== 'transfer' ? `<button class="btn-link text-primary" onclick="window.showEditTransactionModal(${t.id})" title="Edit Transaction">Edit</button>` : ''}
+                        <button class="btn-link text-danger" onclick="window.deleteTransaction(${t.id})" title="Delete Transaction">Delete</button>
                     </div>
                 </td>
             </tr>
