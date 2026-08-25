@@ -86,7 +86,9 @@ export function filterTransactions() {
                 </td>
                 <td class="text-center">
                     <div class="flex center gap-1">
-                        ${t.type !== 'transfer' ? `<button class="btn btn-xs btn-outline-secondary" onclick="window.showEditTransactionModal(${t.id})" title="Edit Transaction">Edit</button>` : ''}
+                        ${t.type !== 'transfer' 
+                            ? `<button class="btn btn-xs btn-outline-secondary" onclick="window.showEditTransactionModal(${t.id})" title="Edit Transaction">Edit</button>` 
+                            : `<button class="btn btn-xs btn-outline-secondary invisible" tabindex="-1" aria-hidden="true" style="visibility:hidden">Edit</button>`}
                         <button class="btn btn-xs btn-outline-danger" onclick="window.deleteTransaction(${t.id})" title="Delete Transaction">Delete</button>
                     </div>
                 </td>
