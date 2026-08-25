@@ -140,6 +140,20 @@ body {
 .btn-link.text-danger { color: var(--danger); }
 .btn-link.text-primary { color: var(--accent); }
 .btn-link svg { display: block; }
+
+/* Edit / Delete buttons — same format as Vehicle Manager app */
+.edit, .delete {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid transparent; border-radius: 7px;
+  padding: 7px 14px; font-size: .875rem; font-weight: 500; line-height: 1.25;
+  cursor: pointer; background: none; text-decoration: none;
+  font-family: inherit; color: #fff; white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, transform .05s ease;
+}
+.edit { background: var(--accent); border-color: var(--accent); }
+.edit:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+.delete { background: var(--danger); border-color: var(--danger); }
+.delete:hover { background: rgba(192,57,43,.85); border-color: var(--danger); }
 .w-100 { width: 100%; justify-content: center; }
 
 /* ---------- Theme switch (sliding) ---------- */
