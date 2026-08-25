@@ -16,8 +16,8 @@ export function renderAllocations() {
                         <div class="flex between align-center mb-1">
                             <h6 class="alloc-name">${al.name}</h6>
                             <div class="flex gap-2">
-                                <button class="edit" onclick="window.showEditAllocationModal(${al.id})" title="Edit Allocation">Edit</button>
-                                <button class="delete" onclick="window.deleteAllocation(${al.id})" title="Delete Allocation">Delete</button>
+                                <button class="btn btn-xs btn-outline-secondary" onclick="window.showEditAllocationModal(${al.id})" title="Edit Allocation">Edit</button>
+                                <button class="btn btn-xs btn-outline-danger" onclick="window.deleteAllocation(${al.id})" title="Delete Allocation">Delete</button>
                             </div>
                         </div>
                         <span class="badge mb-2">${al.account_name || 'Unassigned Acc'}</span>
@@ -59,8 +59,8 @@ export function renderAllocations() {
                     <td class="small">${al.target_date || '-'}</td>
                     <td class="text-center">
                         <div class="flex center gap-2">
-                            <button class="edit" onclick="window.showEditAllocationModal(${al.id})" title="Edit Allocation">Edit</button>
-                            <button class="delete" onclick="window.deleteAllocation(${al.id})" title="Delete Allocation">Delete</button>
+                            <button class="btn btn-xs btn-outline-secondary" onclick="window.showEditAllocationModal(${al.id})" title="Edit Allocation">Edit</button>
+                            <button class="btn btn-xs btn-outline-danger" onclick="window.deleteAllocation(${al.id})" title="Delete Allocation">Delete</button>
                         </div>
                     </td>
                 </tr>
