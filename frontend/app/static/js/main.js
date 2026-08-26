@@ -24,7 +24,6 @@ import {
     renderTransactions,
     filterTransactions,
     populateSelectOptions,
-    populateTransAllocSelect,
     showAddTransactionModal,
     showEditTransactionModal,
     toggleTransType,
@@ -77,7 +76,6 @@ window.showEditAllocationModal = showEditAllocationModal;
 window.deleteAllocation = (id) => deleteAllocation(id, fetchDashboard);
 
 // Transaction handlers
-window.populateTransAllocSelect = populateTransAllocSelect;
 window.showAddTransactionModal = showAddTransactionModal;
 window.showEditTransactionModal = showEditTransactionModal;
 window.toggleTransType = toggleTransType;
@@ -120,12 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const allocAccFilter = document.getElementById('alloc-account-filter');
     if (allocAccFilter) {
         allocAccFilter.addEventListener('change', renderAllocations);
-    }
-
-    // Transaction account select changes allocation options
-    const transAccSelect = document.getElementById('trans-account-select');
-    if (transAccSelect) {
-        transAccSelect.addEventListener('change', populateTransAllocSelect);
     }
 
     // Transaction slicing/filtering

@@ -103,6 +103,17 @@ export function populateSelectOptions() {
     // New Allocation must land in a real account, never the protected Unassigned pool.
     const allocRealOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
 
+    // Build the same grouped Account > Allocation options used by the transfer
+    // From/To dropdowns; record the expense/income Account dropdown should match.
+    const unassignedAccSel = state.accounts.find(a => a.is_system);
+    const unassignedValueSel = unassignedAccSel ? `unassigned_${unassignedAccSel.id}` : 'unassigned';
+    const unassignedOption = `<option value="${unassignedValueSel}">Unassigned Dollars ($${fmtMoney(unassignedAccSel ? unassignedAccSel.balance : 0)})</option>`;
+    let groupedAccOptions = unassignedOption;
+    state.accounts.filter(a => !a.is_system).forEach(acc => {
+        const allocs = state.allocations.filter(al => al.account_id == acc.id);
+        groupedAccOptions += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('') + '</optgroup>';
+    });
+
     const allocAccSelect = document.getElementById('alloc-account-select');
     const transAccSelect = document.getElementById('trans-account-select');
     const transAccTransfer = document.getElementById('transfer-acc-select');
@@ -111,7 +122,7 @@ export function populateSelectOptions() {
     const sliceAlloc = document.getElementById('slice-allocation');
 
     if (allocAccSelect) allocAccSelect.innerHTML = allocRealOptions;
-    if (transAccSelect) transAccSelect.innerHTML = accOptions;
+    if (transAccSelect) transAccSelect.innerHTML = groupedAccOptions;
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
     // Exclude the protected Unassigned (system) account from the allocations
     // slicer/filter so it isn't shown as a filterable amount.
@@ -121,19 +132,6 @@ export function populateSelectOptions() {
 
     const allocOptions = state.allocations.map(al => `<option value="${al.id}">${al.name}</option>`).join('');
     if (sliceAlloc) sliceAlloc.innerHTML = '<option value="">All Allocations</option>' + allocOptions;
-
-    populateTransAllocSelect();
-}
-
-export function populateTransAllocSelect() {
-    const transAccSelect = document.getElementById('trans-account-select');
-    if (!transAccSelect) return;
-    const accId = transAccSelect.value;
-    const allocs = state.allocations.filter(al => al.account_id == accId);
-    const transAllocSelect = document.getElementById('trans-alloc-select');
-    if (transAllocSelect) {
-        transAllocSelect.innerHTML = '<option value="">(None / Unassigned)</option>' + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('');
-    }
 }
 
 export function showAddTransactionModal() {
@@ -155,10 +153,15 @@ export function showEditTransactionModal(id) {
     document.getElementById('trans-desc').value = t.description;
     document.getElementById('trans-amount').value = Math.abs(t.amount);
     document.getElementById('trans-date').value = t.date;
-    document.getElementById('trans-account-select').value = t.account_id;
-
-    populateTransAllocSelect();
-    document.getElementById('trans-alloc-select').value = t.allocation_id || '';
+    // The Account dropdown now uses the grouped Account > Allocation options
+    // (same as transfers): prefer selecting the envelope when the transaction
+    // has one, otherwise select the account itself (or Unassigned Dollars).
+    const unassignedAccEdit = state.accounts.find(a => a.is_system);
+    let accSelValueEdit = t.allocation_id || t.account_id || '';
+    if (unassignedAccEdit && t.account_id == unassignedAccEdit.id && !t.allocation_id) {
+        accSelValueEdit = `unassigned_${unassignedAccEdit.id}`;
+    }
+    document.getElementById('trans-account-select').value = accSelValueEdit;
 
     document.getElementById('transactionModalTitle').textContent = 'Edit Transaction';
     toggleTransType();
@@ -168,7 +171,6 @@ export function showEditTransactionModal(id) {
 export function toggleTransType() {
     const type = document.getElementById('trans-type').value;
     const accWrapper = document.getElementById('trans-acc-wrapper');
-    const allocWrapper = document.getElementById('trans-alloc-wrapper');
     const descGroup = document.getElementById('trans-desc-group');
     const dateGroup = document.getElementById('trans-date-group');
     const fromGroup = document.getElementById('trans-from-group');
@@ -185,7 +187,6 @@ export function toggleTransType() {
 
     if (type === 'transfer') {
         show(accWrapper, false);
-        show(allocWrapper, false);
         show(descGroup, false);
         show(dateGroup, false);
         show(fromGroup, true);
@@ -200,7 +201,6 @@ export function toggleTransType() {
     } else {
         const isIncome = type === 'income';
         show(accWrapper, !isIncome);
-        show(allocWrapper, !isIncome);
         show(descGroup, !isIncome);
         show(dateGroup, true);
         show(fromGroup, false);
@@ -264,13 +264,26 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
 
     const isIncome = type === 'income';
     const unassignedAcc = state.accounts.find(a => a.is_system);
+    // The Account dropdown now uses the same grouped Account > Allocation options
+    // as the transfer From/To dropdowns: a selection may be an allocation (envelope),
+    // a plain account, or the Unassigned Dollars pool (value "unassigned_<id>").
+    // Resolve it to account + allocation here.
+    const accSelValue = document.getElementById('trans-account-select').value;
+    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
+    const pickedAlloc = state.allocations.find(al => al.id == accSelValue);
+    const pickedAccount = state.accounts.find(a => a.id == accSelValue);
+    const choseUnassigned = accSelValue === unassignedValue;
+    const selectedAccountId = choseUnassigned
+        ? (unassignedAcc ? unassignedAcc.id : accSelValue)
+        : (pickedAlloc ? pickedAlloc.account_id : accSelValue);
+    const selectedAllocId = (isIncome || !pickedAlloc) ? '' : pickedAlloc.id;
     uiState.pendingTxData = {
         id: id || null,
         description: document.getElementById('trans-desc').value,
         amount: document.getElementById('trans-amount').value,
         date: document.getElementById('trans-date').value,
-        account_id: isIncome ? (unassignedAcc ? unassignedAcc.id : document.getElementById('trans-account-select').value) : document.getElementById('trans-account-select').value,
-        allocation_id: isIncome ? '' : document.getElementById('trans-alloc-select').value,
+        account_id: selectedAccountId,
+        allocation_id: selectedAllocId,
         type
     };
 
