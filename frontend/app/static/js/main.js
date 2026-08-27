@@ -6,6 +6,7 @@ import { renderSummary } from './components/summary.js';
 import {
     renderAccounts,
     toggleAccountView,
+    setAccountSort,
     showAddAccountModal,
     showEditAccountNameModal,
     handleAccountSubmit,
@@ -15,6 +16,7 @@ import {
 import {
     renderAllocations,
     setAllocationView,
+    setAllocationSort,
     showAddAllocationModal,
     showEditAllocationModal,
     handleAllocationSubmit,
@@ -65,12 +67,14 @@ window.closeModal = closeModal;
 
 // Account handlers
 window.toggleAccountView = toggleAccountView;
+window.setAccountSort = setAccountSort;
 window.showAddAccountModal = showAddAccountModal;
 window.showEditAccountNameModal = showEditAccountNameModal;
 window.deleteAccount = (id) => deleteAccount(id, fetchDashboard);
 
 // Allocation handlers
 window.setAllocationView = setAllocationView;
+window.setAllocationSort = setAllocationSort;
 window.showAddAllocationModal = showAddAllocationModal;
 window.showEditAllocationModal = showEditAllocationModal;
 window.deleteAllocation = (id) => deleteAllocation(id, fetchDashboard);

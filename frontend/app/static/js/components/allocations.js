@@ -5,10 +5,11 @@ import { createAllocationApi, updateAllocationApi, deleteAllocationApi } from '.
 export function renderAllocations() {
     const filterAccId = document.getElementById('alloc-account-filter') ? document.getElementById('alloc-account-filter').value : '';
     const filteredAllocations = state.allocations.filter(al => !filterAccId || al.account_id == filterAccId);
+    const sortedAllocations = [...filteredAllocations].sort(compareAllocations);
 
     const container = document.getElementById('allocations-container');
     if (container) {
-        container.innerHTML = filteredAllocations.map(al => {
+        container.innerHTML = sortedAllocations.map(al => {
             let pct = al.target_amount > 0 ? Math.min(100, Math.round((al.amount_available / al.target_amount) * 100)) : 0;
             return `
                 <div class="card h-100">
@@ -40,7 +41,7 @@ export function renderAllocations() {
 
     const tbody = document.getElementById('allocations-list');
     if (tbody) {
-        tbody.innerHTML = filteredAllocations.map(al => {
+        tbody.innerHTML = sortedAllocations.map(al => {
             let pct = al.target_amount > 0 ? Math.min(100, Math.round((al.amount_available / al.target_amount) * 100)) : 0;
             return `
                 <tr>
@@ -69,6 +70,22 @@ export function renderAllocations() {
     }
 
     applyAllocationView();
+}
+
+function compareAllocations(a, b) {
+    if (uiState.allocationSort === 'amount') {
+        const diff = (a.amount_available || 0) - (b.amount_available || 0);
+        return uiState.allocationSortDir === 'asc' ? diff : -diff;
+    }
+    const nameCmp = (a.name || '').localeCompare(b.name || '');
+    return uiState.allocationSortDir === 'asc' ? nameCmp : -nameCmp;
+}
+
+export function setAllocationSort(value) {
+    const [key, dir] = value.split(':');
+    uiState.allocationSort = key;
+    uiState.allocationSortDir = dir;
+    renderAllocations();
 }
 
 export function setAllocationView(view) {
