@@ -3,9 +3,10 @@ import { openModal, closeModal } from '../modals.js';
 import { createAccountApi, updateAccountApi, deleteAccountApi } from '../api.js';
 
 export function renderAccounts() {
+    const sorted = [...state.accounts].sort(compareAccounts);
     const container = document.getElementById('accounts-container');
     if (container) {
-        container.innerHTML = state.accounts.map(acc => `
+        container.innerHTML = sorted.map(acc => `
             <div class="card h-100">
                 <div class="card-body">
                     <div class="flex between align-center mb-2">
@@ -23,7 +24,7 @@ export function renderAccounts() {
 
     const tbody = document.getElementById('accounts-list');
     if (tbody) {
-        tbody.innerHTML = state.accounts.map(acc => `
+        tbody.innerHTML = sorted.map(acc => `
             <tr>
                 <td class="fw-semibold">${acc.name}</td>
                 <td class="text-end fw-bold text-primary">$${fmtMoney(acc.balance)}</td>
@@ -38,6 +39,22 @@ export function renderAccounts() {
     }
 
     applyAccountView();
+}
+
+function compareAccounts(a, b) {
+    if (uiState.accountSort === 'balance') {
+        const diff = a.balance - b.balance;
+        return uiState.accountSortDir === 'asc' ? diff : -diff;
+    }
+    const nameCmp = (a.name || '').localeCompare(b.name || '');
+    return uiState.accountSortDir === 'asc' ? nameCmp : -nameCmp;
+}
+
+export function setAccountSort(value) {
+    const [key, dir] = value.split(':');
+    uiState.accountSort = key;
+    uiState.accountSortDir = dir;
+    renderAccounts();
 }
 
 export function toggleAccountView(view) {

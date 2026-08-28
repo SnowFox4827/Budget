@@ -67,6 +67,12 @@
                 <select id="alloc-account-filter" class="filter-select">
                     <option value="">All Accounts</option>
                 </select>
+                <select id="alloc-sort-select" class="filter-select" onchange="setAllocationSort(this.value)">
+                    <option value="name:asc">Name A–Z</option>
+                    <option value="name:desc">Name Z–A</option>
+                    <option value="amount:desc">Amount: High → Low</option>
+                    <option value="amount:asc">Amount: Low → High</option>
+                </select>
             </div>
             <div class="right">
                 <button class="btn btn-sm btn-primary" onclick="showAddAllocationModal()">
@@ -107,6 +113,12 @@
         <div class="section-head">
             <div class="left">
                 <h5 class="section-title">Accounts</h5>
+                <select id="acc-sort-select" class="filter-select" onchange="setAccountSort(this.value)">
+                    <option value="name:asc">Name A–Z</option>
+                    <option value="name:desc">Name Z–A</option>
+                    <option value="balance:desc">Balance: High → Low</option>
+                    <option value="balance:asc">Balance: Low → High</option>
+                </select>
             </div>
             <div class="right">
                 <button class="btn btn-sm btn-primary" onclick="showAddAccountModal()">
@@ -311,12 +323,8 @@
                         <select id="trans-to-select"></select>
                     </div>
                     <div class="form-group" id="trans-acc-wrapper">
-                        <label>Account</label>
+                        <label>Account / Envelope</label>
                         <select id="trans-account-select" required></select>
-                    </div>
-                    <div class="form-group" id="trans-alloc-wrapper">
-                        <label>Allocation / Envelope</label>
-                        <select id="trans-alloc-select"></select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Save Transaction</button>
                 </form>

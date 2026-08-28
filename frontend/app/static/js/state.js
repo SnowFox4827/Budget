@@ -7,7 +7,11 @@ export const state = {
 export const uiState = {
     pendingTxData: null,
     allocationView: 'grid',
-    accountView: 'grid'
+    accountView: 'grid',
+    accountSort: 'name',
+    accountSortDir: 'asc',
+    allocationSort: 'name',
+    allocationSortDir: 'asc'
 };
 
 export function fmtMoney(n) {

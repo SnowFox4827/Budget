@@ -6,6 +6,7 @@ import { renderSummary } from './components/summary.js';
 import {
     renderAccounts,
     toggleAccountView,
+    setAccountSort,
     showAddAccountModal,
     showEditAccountNameModal,
     handleAccountSubmit,
@@ -15,6 +16,7 @@ import {
 import {
     renderAllocations,
     setAllocationView,
+    setAllocationSort,
     showAddAllocationModal,
     showEditAllocationModal,
     handleAllocationSubmit,
@@ -24,7 +26,6 @@ import {
     renderTransactions,
     filterTransactions,
     populateSelectOptions,
-    populateTransAllocSelect,
     showAddTransactionModal,
     showEditTransactionModal,
     toggleTransType,
@@ -66,18 +67,19 @@ window.closeModal = closeModal;
 
 // Account handlers
 window.toggleAccountView = toggleAccountView;
+window.setAccountSort = setAccountSort;
 window.showAddAccountModal = showAddAccountModal;
 window.showEditAccountNameModal = showEditAccountNameModal;
 window.deleteAccount = (id) => deleteAccount(id, fetchDashboard);
 
 // Allocation handlers
 window.setAllocationView = setAllocationView;
+window.setAllocationSort = setAllocationSort;
 window.showAddAllocationModal = showAddAllocationModal;
 window.showEditAllocationModal = showEditAllocationModal;
 window.deleteAllocation = (id) => deleteAllocation(id, fetchDashboard);
 
 // Transaction handlers
-window.populateTransAllocSelect = populateTransAllocSelect;
 window.showAddTransactionModal = showAddTransactionModal;
 window.showEditTransactionModal = showEditTransactionModal;
 window.toggleTransType = toggleTransType;
@@ -120,12 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const allocAccFilter = document.getElementById('alloc-account-filter');
     if (allocAccFilter) {
         allocAccFilter.addEventListener('change', renderAllocations);
-    }
-
-    // Transaction account select changes allocation options
-    const transAccSelect = document.getElementById('trans-account-select');
-    if (transAccSelect) {
-        transAccSelect.addEventListener('change', populateTransAllocSelect);
     }
 
     // Transaction slicing/filtering
