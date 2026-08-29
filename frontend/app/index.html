@@ -243,7 +243,10 @@
                     <div class="calc-result" id="ci-result"></div>
                 </div>
                 <div class="calc-chart">
-                    <canvas id="ci-chart" height="280"></canvas>
+                    <div class="calc-chart-inner">
+                        <canvas id="ci-chart" height="280"></canvas>
+                    </div>
+                    <div id="ci-ms-tip" class="ci-ms-tip" style="display:none;"></div>
                     <button type="button" class="btn btn-sm btn-outline-secondary calc-milestone-toggle" id="ci-milestone-toggle" onclick="toggleMilestones()">Hide Milestones</button>
                 </div>
             </div>

@@ -129,17 +129,6 @@
         return result;
     }
 
-    // Small canvas helper for the rounded milestone tooltip box.
-    function drawRoundRect(ctx, x, y, w, h, r) {
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arcTo(x + w, y, x + w, y + h, r);
-        ctx.arcTo(x + w, y + h, x, y + h, r);
-        ctx.arcTo(x, y + h, x, y, r);
-        ctx.arcTo(x, y, x + w, y, r);
-        ctx.closePath();
-    }
-
     // Draw the year-by-year growth curve.
     function renderChart(series) {
         const canvas = document.getElementById('ci-chart');
@@ -149,6 +138,11 @@
         if (window.ciChart instanceof Chart) {
             window.ciChart.destroy();
         }
+        // Avoid stacking duplicate listeners across recalcs/theme changes.
+        if (canvas._ciMove) canvas.removeEventListener('mousemove', canvas._ciMove);
+        if (canvas._ciLeave) canvas.removeEventListener('mouseleave', canvas._ciLeave);
+        canvas._ciMove = null;
+        canvas._ciLeave = null;
 
         const labels = [];
         for (let i = 0; i < series.length; i++) labels.push('Year ' + i);
@@ -188,16 +182,16 @@
                     backgroundColor: 'transparent',
                     font: { weight: '600', size: 11 }
                 },
-                enter: function (ctx) {
+                enter: function () {
                     hoveredMs = msToAnnotation[key];
-                    ctx.chart.draw();
+                    showMilestoneTip();
                 },
-                leave: function (ctx) {
+                leave: function () {
                     hoveredMs = null;
-                    ctx.chart.draw();
+                    hideMilestoneTip();
                 }
             };
-            msToAnnotation[key] = { label: m.label, year: labels[m.year], col: col };
+            msToAnnotation[key] = { label: m.label, year: labels[m.year], value: m.value, col: col };
         }
 
         window.ciChart = new Chart(canvas.getContext('2d'), {
@@ -214,37 +208,6 @@
                     pointRadius: 3
                 }]
             },
-            plugins: [
-                // Bug-proof: redraw our tooltip box on top after annotations.
-                {
-                    afterDraw: function (chart) {
-                        const info = hoveredMs;
-                        if (!info) return;
-                        const yScale = chart.scales.y;
-                        const chartArea = chart.chartArea;
-                        const y = yScale.getPixelForValue(info.value);
-                        if (y < chartArea.top || y > chartArea.bottom) return;
-                        const text = info.label + ' → ~' + info.year;
-                        const ctx = chart.ctx;
-                        ctx.save();
-                        ctx.font = '600 12px sans-serif';
-                        const w = ctx.measureText(text).width + 16;
-                        ctx.fillStyle = 'rgba(20,22,24,0.92)';
-                        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
-                        ctx.lineWidth = 1;
-                        const tx = Math.min(Math.max(chartArea.right - w - 10, chartArea.left + 6), chartArea.right - w - 6);
-                        const ty = y - 32;
-                        drawRoundRect(ctx, tx, ty, w, 24, 6);
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.fillStyle = '#fff';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(text, tx + w / 2, ty + 12);
-                        ctx.restore();
-                    }
-                }
-            ],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -276,5 +239,43 @@
                 }
             }
         });
+
+        // ---- HTML milestone tooltip (follows the cursor) ----
+        const tip = document.getElementById('ci-ms-tip');
+        const wrap = canvas.closest('.calc-chart');
+        const moveHandler = function (e) {
+            if (!hoveredMs) return;
+            const rect = wrap.getBoundingClientRect();
+            const tx = e.clientX - rect.left;
+            const ty = e.clientY - rect.top;
+            tip.textContent = hoveredMs.label + ' \u2192 ~' + hoveredMs.year;
+            tip.style.display = 'block';
+            // Position near the cursor, kept inside the chart.
+            const tw = tip.offsetWidth;
+            const th = tip.offsetHeight;
+            let left = tx + 14;
+            let top = ty + 14;
+            if (left + tw > rect.width - 4) left = tx - tw - 14;
+            if (top + th > rect.height - 4) top = ty - th - 14;
+            tip.style.left = left + 'px';
+            tip.style.top = top + 'px';
+        };
+        canvas._ciMove = moveHandler;
+        canvas.addEventListener('mousemove', moveHandler);
+        canvas._ciLeave = function () {
+            hoveredMs = null;
+            hideMilestoneTip();
+        };
+        canvas.addEventListener('mouseleave', canvas._ciLeave);
+
+        function showMilestoneTip() {
+            if (!tip || !hoveredMs) return;
+            tip.textContent = hoveredMs.label + ' \u2192 ~' + hoveredMs.year;
+            tip.style.display = 'block';
+        }
+        function hideMilestoneTip() {
+            if (tip) tip.style.display = 'none';
+        }
+        if (tip) tip.style.display = 'none';
     }
 })();
