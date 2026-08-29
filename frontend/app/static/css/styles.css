@@ -290,8 +290,7 @@ input::placeholder { color: var(--text-faint); }
 
 /* ---------- CI Calculator ---------- */
 .calc-layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
-.rate-input-row { display: flex; align-items: center; gap: 6px; }
-.rate-input-row input { /* reuse form input base */ }
+.rate-input-row { display: flex; align-items: center; }
 .rate-input-row::after { content: '%'; color: var(--text-soft); font-weight: 600; margin-left: 4px; }
 .calc-settings { min-width: 0; }
 @media (max-width: 860px) {

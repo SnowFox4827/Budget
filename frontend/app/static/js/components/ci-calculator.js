@@ -5,23 +5,6 @@
         return Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     }
 
-    // Keep the typed number input and the slider in sync.
-    window.updateRateNum = function () {
-        const numEl = document.getElementById('ci-rate-num');
-        const sliderEl = document.getElementById('ci-rate');
-        if (!numEl || !sliderEl) return;
-        const v = parseFloat(numEl.value);
-        if (!isNaN(v)) {
-            sliderEl.value = Math.min(20, Math.max(1, v));
-            if (v > 20) numEl.value = v; // allow typing beyond slider max
-        }
-    };
-    window.updateRateSlider = function () {
-        const numEl = document.getElementById('ci-rate-num');
-        const sliderEl = document.getElementById('ci-rate');
-        if (numEl && sliderEl) numEl.value = sliderEl.value;
-    };
-
     // Compound interest calculator with optional monthly contributions.
     window.compInterest = function () {
         const principalEl = document.getElementById('ci-principal');
