@@ -57,6 +57,7 @@
         <button class="tab-btn active" data-tab="allocations-sec" onclick="switchTab('allocations-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Allocations</button>
         <button class="tab-btn" data-tab="accounts-sec" onclick="switchTab('accounts-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 .8 1 4v1h14V4zM2.6 6.2h2v5.4h-2zM7 6.2h2v5.4H7zM11.4 6.2h2v5.4h-2zM.6 13h14.8v.9H.6z"/></svg> Accounts</button>
         <button class="tab-btn" data-tab="transactions-sec" onclick="switchTab('transactions-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg> Transactions</button>
+        <button class="tab-btn" data-tab="ci-calc-sec" onclick="switchTab('ci-calc-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg> CI Calculator</button>
     </div>
 
     <!-- ALLOCATIONS SECTION -->
@@ -197,6 +198,57 @@
                     </thead>
                     <tbody id="transactions-list"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- CI CALCULATOR SECTION -->
+    <div class="tab-pane" id="ci-calc-sec">
+        <div class="section-head">
+            <div class="left">
+                <h5 class="section-title">Compound Interest Calculator</h5>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body calc-layout">
+                <div class="calc-settings">
+                    <div class="form-group">
+                        <label>Principal Amount ($)</label>
+                        <input type="number" id="ci-principal" value="1000" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Interest Rate (%)</label>
+                        <div class="rate-input-row">
+                            <input type="number" id="ci-rate-num" value="10.25" min="0.01" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Time (Years)</label>
+                        <input type="number" id="ci-years" value="1" min="1" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Contribution ($)</label>
+                        <input type="number" id="ci-monthly" value="0" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label>Compounding Frequency</label>
+                        <select id="ci-compound">
+                            <option value="12">Monthly</option>
+                            <option value="1" selected>Annually</option>
+                            <option value="4">Quarterly</option>
+                            <option value="365">Daily</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="compInterest()">Calculate</button>
+                    <div class="calc-result" id="ci-result"></div>
+                </div>
+                <div class="calc-chart">
+                    <div class="calc-chart-inner">
+                        <canvas id="ci-chart" height="280"></canvas>
+                    </div>
+                    <div id="ci-ms-tip" class="ci-ms-tip" style="display:none;"></div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary calc-milestone-toggle" id="ci-milestone-toggle" onclick="toggleMilestones()">Hide Milestones</button>
+                </div>
             </div>
         </div>
     </div>
@@ -420,6 +472,8 @@
     </div>
 </div>
 
+<script src="/js/vendor-chart.js"></script>
+<script src="/js/vendor-annotation-plugin.js"></script>
 <script type="module" src="/js/main.js"></script>
 </body>
 </html>

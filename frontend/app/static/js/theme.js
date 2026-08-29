@@ -1,5 +1,7 @@
 export function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
+    // Let components re-read CSS variables (e.g. chart colors) after theme flips.
+    document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme } }));
     const icon = document.getElementById('theme-toggle-icon');
     if (!icon) return;
     if (theme === 'dark') {

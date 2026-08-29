@@ -40,6 +40,7 @@ import {
     handleFileRestore,
     handleSnapshotRestore
 } from './components/backup.js';
+import './components/ci-calculator.js';
 
 // Global Data Fetch
 export async function fetchDashboard() {
@@ -123,6 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (allocAccFilter) {
         allocAccFilter.addEventListener('change', renderAllocations);
     }
+
+    // Initialise the compound interest calculator's rate label
+    if (window.updateRate) updateRate();
+
 
     // Transaction slicing/filtering
     const sliceInputs = ['slice-date-preset', 'slice-search', 'slice-account', 'slice-allocation', 'slice-type'];
