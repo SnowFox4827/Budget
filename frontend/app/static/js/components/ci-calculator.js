@@ -120,6 +120,17 @@
         return result;
     }
 
+    // Small canvas helper for the rounded milestone tooltip box.
+    function drawRoundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
     // Draw the year-by-year growth curve.
     function renderChart(series) {
         const canvas = document.getElementById('ci-chart');
@@ -159,34 +170,66 @@
                     beforeDraw: function (chart) {
                         chart.$milestones = milestonesFor(series);
                     },
+                    afterEvent: function (chart, evt) {
+                        // Track a hovered milestone so we can show a year tooltip.
+                        const pos = Chart.helpers.getRelativePosition(evt, chart);
+                        const yScale = chart.scales.y;
+                        let nearest = null;
+                        for (const m of (chart.$milestones || [])) {
+                            const y = yScale.getPixelForValue(m.value);
+                            if (Math.abs(pos.y - y) < 10) nearest = { m: m, x: pos.x, y: y };
+                        }
+                        chart.$activeMilestone = (nearest && nearest.m.value <= series[series.length - 1]) ? nearest : null;
+                    },
                     afterDraw: function (chart) {
                         const ms = chart.$milestones;
-                        if (!ms || ms.length === 0) return;
+                        const ctx = chart.ctx;
+                        const chartArea = chart.chartArea;
                         const yScale = chart.scales.y;
                         const xScale = chart.scales.x;
-                        const chartArea = chart.chartArea;
-                        const ctx = chart.ctx;
                         ctx.save();
                         ctx.font = '600 11px sans-serif';
                         ctx.textBaseline = 'bottom';
-                        for (const m of ms) {
-                            if (m.value > series[series.length - 1]) continue; // milestone never reached in range
-                            const y = yScale.getPixelForValue(m.value);
-                            if (y < chartArea.top || y > chartArea.bottom) continue;
-                            const c = (m.value >= 1000000) ? '#c9a227' : '#2e9e5b';
-                            ctx.strokeStyle = c;
-                            ctx.setLineDash([6, 5]);
-                            ctx.lineWidth = 1.5;
-                            ctx.globalAlpha = 0.85;
-                            ctx.beginPath();
-                            ctx.moveTo(chartArea.left, y);
-                            ctx.lineTo(chartArea.right, y);
+                        if (ms) {
+                            for (const m of ms) {
+                                if (m.value > series[series.length - 1]) continue; // milestone never reached in range
+                                const y = yScale.getPixelForValue(m.value);
+                                if (y < chartArea.top || y > chartArea.bottom) continue;
+                                const c = (m.value >= 1000000) ? '#c9a227' : '#2e9e5b';
+                                ctx.strokeStyle = c;
+                                ctx.setLineDash([6, 5]);
+                                ctx.lineWidth = 1.5;
+                                ctx.globalAlpha = 0.85;
+                                ctx.beginPath();
+                                ctx.moveTo(chartArea.left, y);
+                                ctx.lineTo(chartArea.right, y);
+                                ctx.stroke();
+                                ctx.setLineDash([]);
+                                ctx.globalAlpha = 1;
+                                ctx.fillStyle = c;
+                                ctx.textAlign = 'right';
+                                ctx.fillText(m.label, chartArea.right - 4, y - 4);
+                            }
+                        }
+                        // Tooltip showing the approx year for the hovered milestone.
+                        const active = chart.$activeMilestone;
+                        if (active) {
+                            const year = chart.data.labels[active.m.year];
+                            const text = active.m.label + ' → ~Year ' + year;
+                            ctx.font = '600 12px sans-serif';
+                            const w = ctx.measureText(text).width + 16;
+                            ctx.fillStyle = 'rgba(20,22,24,0.92)';
+                            ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+                            ctx.lineWidth = 1;
+                            const tx = Math.min(Math.max(active.x, chartArea.left + 6), chartArea.right - w - 6);
+                            const ty = active.y - 34;
+                            drawRoundRect(ctx, tx, ty, w, 24, 6);
+                            ctx.fill();
                             ctx.stroke();
-                            ctx.setLineDash([]);
-                            ctx.globalAlpha = 1;
-                            ctx.fillStyle = c;
-                            ctx.textAlign = 'right';
-                            ctx.fillText(m.label, chartArea.right - 4, y - 4);
+                            ctx.fillStyle = '#fff';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(text, tx + w / 2, ty + 12);
                         }
                         ctx.restore();
                     }
