@@ -6,6 +6,15 @@
     }
 
     let lastSeries = null; // keep the last chart series so we can redraw on theme change
+    let showMilestones = true; // whether milestone lines are drawn
+
+    // Toggle milestone lines on/off, redraw if we have a chart.
+    window.toggleMilestones = function () {
+        showMilestones = !showMilestones;
+        const btn = document.getElementById('ci-milestone-toggle');
+        if (btn) btn.textContent = showMilestones ? 'Hide Milestones' : 'Show Milestones';
+        if (window.ciChart) renderChart(lastSeries);
+    };
 
     // Compound interest calculator with optional monthly contributions.
     window.compInterest = function () {
@@ -168,7 +177,7 @@
                 // Milestone lines: first $100k and first $1M (horizontal dashed lines + labels).
                 {
                     beforeDraw: function (chart) {
-                        chart.$milestones = milestonesFor(series);
+                        chart.$milestones = (showMilestones) ? milestonesFor(series) : [];
                     },
                     afterEvent: function (chart, evt) {
                         // Track a hovered milestone so we can show a year tooltip.
