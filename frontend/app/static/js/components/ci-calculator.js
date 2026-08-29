@@ -45,5 +45,76 @@
             '<div class="calc-line"><span class="text-soft">Final amount</span><strong>' + money(amount) + '</strong></div>' +
             '<div class="calc-line"><span class="text-soft">Principal</span>' + money(principal) + '</div>' +
             '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(amount - principal) + '</div>';
+
+        renderChart(principal, rn, n, years);
     };
+
+    // Draw the year-by-year growth curve.
+    function renderChart(principal, rn, n, years) {
+        const canvas = document.getElementById('ci-chart');
+        if (!canvas || typeof Chart === 'undefined') return;
+
+        const nyears = Math.max(1, Math.ceil(years));
+        const labels = [];
+        const data = [];
+        for (let y = 0; y <= nyears; y++) {
+            labels.push('Year ' + y);
+            data.push(principal * Math.pow(1 + rn, n * y));
+        }
+
+        if (window.ciChart instanceof Chart) {
+            window.ciChart.destroy();
+        }
+
+        // Pull theme colors from CSS variables if present.
+        const css = getComputedStyle(document.documentElement);
+        const accent = (css.getPropertyValue('--accent') || '#4a90d9').trim();
+        const grid = (css.getPropertyValue('--border') || 'rgba(128,128,128,0.15)').trim();
+        const tick = (css.getPropertyValue('--text') || '#666').trim();
+
+        window.ciChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Balance',
+                    data: data,
+                    borderColor: accent,
+                    backgroundColor: accent + '22',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                return money(ctx.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: grid },
+                        ticks: { color: tick }
+                    },
+                    y: {
+                        grid: { color: grid },
+                        ticks: {
+                            color: tick,
+                            callback: function (v) {
+                                return '\u00a0\u00a0' + v.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 })();
