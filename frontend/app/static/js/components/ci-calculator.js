@@ -102,6 +102,24 @@
         if (lastSeries && lastSeries.length) renderChart(lastSeries);
     });
 
+    // Figure out the year each milestone ($100k, $1M) is first crossed.
+    function milestonesFor(series) {
+        const result = [];
+        const goals = [
+            { value: 100000, label: '$100k' },
+            { value: 1000000, label: '$1M' }
+        ];
+        for (const g of goals) {
+            for (let i = 0; i < series.length; i++) {
+                if (series[i] >= g.value) {
+                    result.push({ value: g.value, label: g.label, year: i });
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     // Draw the year-by-year growth curve.
     function renderChart(series) {
         const canvas = document.getElementById('ci-chart');
@@ -135,6 +153,45 @@
                     pointRadius: 3
                 }]
             },
+            plugins: [
+                // Milestone lines: first $100k and first $1M (horizontal dashed lines + labels).
+                {
+                    beforeDraw: function (chart) {
+                        chart.$milestones = milestonesFor(series);
+                    },
+                    afterDraw: function (chart) {
+                        const ms = chart.$milestones;
+                        if (!ms || ms.length === 0) return;
+                        const yScale = chart.scales.y;
+                        const xScale = chart.scales.x;
+                        const chartArea = chart.chartArea;
+                        const ctx = chart.ctx;
+                        ctx.save();
+                        ctx.font = '600 11px sans-serif';
+                        ctx.textBaseline = 'bottom';
+                        for (const m of ms) {
+                            if (m.value > series[series.length - 1]) continue; // milestone never reached in range
+                            const y = yScale.getPixelForValue(m.value);
+                            if (y < chartArea.top || y > chartArea.bottom) continue;
+                            const c = (m.value >= 1000000) ? '#c9a227' : '#2e9e5b';
+                            ctx.strokeStyle = c;
+                            ctx.setLineDash([6, 5]);
+                            ctx.lineWidth = 1.5;
+                            ctx.globalAlpha = 0.85;
+                            ctx.beginPath();
+                            ctx.moveTo(chartArea.left, y);
+                            ctx.lineTo(chartArea.right, y);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+                            ctx.globalAlpha = 1;
+                            ctx.fillStyle = c;
+                            ctx.textAlign = 'right';
+                            ctx.fillText(m.label, chartArea.right - 4, y - 4);
+                        }
+                        ctx.restore();
+                    }
+                }
+            ],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
