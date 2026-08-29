@@ -243,12 +243,35 @@
         // ---- HTML milestone tooltip (follows the cursor) ----
         const tip = document.getElementById('ci-ms-tip');
         const wrap = canvas.closest('.calc-chart');
+        // Precompute each milestone line's vertical pixel position for forgiving hover.
+        const chartY = window.ciChart.scales.y;
+        canvas._ciLines = milestones.map(function (m) {
+            return { label: m.label, year: labels[m.year], pixel: chartY.getPixelForValue(m.value) };
+        });
+
         const moveHandler = function (e) {
-            if (!hoveredMs) return;
             const rect = wrap.getBoundingClientRect();
             const tx = e.clientX - rect.left;
             const ty = e.clientY - rect.top;
-            tip.textContent = hoveredMs.label + ' \u2192 ~' + hoveredMs.year;
+            if (!canvas._ciLines || canvas._ciLines.length === 0 || !showMilestones) {
+                hideMilestoneTip();
+                return;
+            }
+            // Forgiving hit test against each milestone line.
+            let best = null;
+            let bestD = 1e9;
+            for (const ln of canvas._ciLines) {
+                const d = Math.abs(ty - ln.pixel);
+                if (d <= 16 && d < bestD) {
+                    best = ln;
+                    bestD = d;
+                }
+            }
+            if (!best) {
+                hideMilestoneTip();
+                return;
+            }
+            tip.textContent = best.label + ' \u2192 ~' + best.year;
             tip.style.display = 'block';
             // Position near the cursor, kept inside the chart.
             const tw = tip.offsetWidth;
@@ -263,7 +286,6 @@
         canvas._ciMove = moveHandler;
         canvas.addEventListener('mousemove', moveHandler);
         canvas._ciLeave = function () {
-            hoveredMs = null;
             hideMilestoneTip();
         };
         canvas.addEventListener('mouseleave', canvas._ciLeave);
