@@ -89,15 +89,8 @@
             }
         }
 
-        let depositsLine = '';
-        if (monthly > 0) {
-            const totalDeposited = principal + monthly * months;
-            depositsLine = '<div class="calc-line"><span class="text-soft">Total deposited</span>' + money(totalDeposited) + '</div>';
-        }
-
         resultEl.innerHTML =
             '<div class="calc-line"><span class="text-soft">Final amount</span><strong>' + money(final) + '</strong></div>' +
-            depositsLine +
             '<div class="calc-line"><span class="text-soft">Principal</span>' + money(principal) + '</div>' +
             (monthly > 0 ? '<div class="calc-line"><span class="text-soft">Total contributions</span>' + money(monthly * months) + '</div>' : '') +
             '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(interest) + '</div>';
