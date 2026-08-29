@@ -145,6 +145,7 @@
         const accent = (css.getPropertyValue('--accent') || '#4a90d9').trim();
         const grid = (css.getPropertyValue('--border') || 'rgba(128,128,128,0.15)').trim();
         const tick = (css.getPropertyValue('--text') || '#666').trim();
+        const surface = (css.getPropertyValue('--surface') || '#111111').trim();
 
         // Milestones crossed within range.
         const milestones = (showMilestones) ? milestonesFor(series) : [];
@@ -207,6 +208,11 @@
                 plugins: {
                     legend: { display: false },
                     tooltip: {
+                        backgroundColor: surface,
+                        titleColor: tick,
+                        bodyColor: tick,
+                        borderColor: grid,
+                        borderWidth: 1,
                         callbacks: {
                             label: function (ctx) {
                                 return money(ctx.parsed.y);
