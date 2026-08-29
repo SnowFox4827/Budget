@@ -210,30 +210,32 @@
             </div>
         </div>
         <div class="card">
-            <div class="card-body calc-body">
-                <div class="form-group">
-                    <label>Principal Amount ($)</label>
-                    <input type="number" id="ci-principal" value="1000" min="0" placeholder="0.00">
+            <div class="card-body calc-layout">
+                <div class="calc-settings">
+                    <div class="form-group">
+                        <label>Principal Amount ($)</label>
+                        <input type="number" id="ci-principal" value="1000" min="0" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Annual Interest Rate (%) <span class="text-soft" id="ci-rate-label">10.25%</span></label>
+                        <input type="range" id="ci-rate" min="1" max="20" value="10.25" step="0.25" oninput="updateRate()">
+                    </div>
+                    <div class="form-group">
+                        <label>Time (Years)</label>
+                        <input type="number" id="ci-years" value="1" min="1" placeholder="1">
+                    </div>
+                    <div class="form-group form-group-inline">
+                        <label>Compounding Frequency</label>
+                        <select id="ci-compound">
+                            <option value="12">Monthly</option>
+                            <option value="1" selected>Annually</option>
+                            <option value="4">Quarterly</option>
+                            <option value="365">Daily</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="compInterest()">Calculate</button>
+                    <div class="calc-result" id="ci-result"></div>
                 </div>
-                <div class="form-group">
-                    <label>Annual Interest Rate (%) <span class="text-soft" id="ci-rate-label">10.25%</span></label>
-                    <input type="range" id="ci-rate" min="1" max="20" value="10.25" step="0.25" oninput="updateRate()">
-                </div>
-                <div class="form-group">
-                    <label>Time (Years)</label>
-                    <input type="number" id="ci-years" value="1" min="1" placeholder="1">
-                </div>
-                <div class="form-group form-group-inline">
-                    <label>Compounding Frequency</label>
-                    <select id="ci-compound">
-                        <option value="12">Monthly</option>
-                        <option value="1" selected>Annually</option>
-                        <option value="4">Quarterly</option>
-                        <option value="365">Daily</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" onclick="compInterest()">Calculate</button>
-                <div class="calc-result" id="ci-result"></div>
                 <div class="calc-chart">
                     <canvas id="ci-chart" height="280"></canvas>
                 </div>
