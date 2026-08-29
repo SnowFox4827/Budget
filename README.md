@@ -33,7 +33,7 @@ Because the frontend proxies `/api`, the browser talks to a **single origin** â€
 - **Envelopes & Allocations:** Goals tied to accounts, target amounts, target dates, progress bars, and filtering by account. Deleting an allocation returns funds to Unassigned Dollars.
 - **Transactions & Overspend Protection:** Expenses, income, and transfers with automated balance recalculation and overspend shortfall resolution.
 - **Reallocate Funds:** Shift dollars between allocations or the unassigned pool.
-- **Compound Interest Calculator:** Dedicated "CI Calculator" tab with principal, rate, time, and compounding frequency; instant math with final amount and interest earned, plus a year-by-year growth curve chart (Chart.js).
+- **Compound Interest Calculator:** Dedicated "CI Calculator" tab with principal, rate, time, and compounding frequency; typeable interest rate, optional monthly contributions, compounding frequency, and instant math with final amount and interest earned, plus a year-by-year growth curve chart (Chart.js).
 - **Card â‡„ List Views** for Allocations and Accounts.
 - **Light & Dark** "paper & envelopes" themes with a sliding toggle (persisted in `localStorage`).
 - **Modular Codebase:** Decoupled backend blueprints and componentized ES frontend modules.

@@ -5,28 +5,38 @@
         return Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     }
 
-    // Update the rate label as the slider moves.
-    window.updateRate = function () {
-        const rateEl = document.getElementById('ci-rate');
-        const label = document.getElementById('ci-rate-label');
-        if (rateEl && label) {
-            label.textContent = rateEl.value + '%';
+    // Keep the typed number input and the slider in sync.
+    window.updateRateNum = function () {
+        const numEl = document.getElementById('ci-rate-num');
+        const sliderEl = document.getElementById('ci-rate');
+        if (!numEl || !sliderEl) return;
+        const v = parseFloat(numEl.value);
+        if (!isNaN(v)) {
+            sliderEl.value = Math.min(20, Math.max(1, v));
+            if (v > 20) numEl.value = v; // allow typing beyond slider max
         }
     };
+    window.updateRateSlider = function () {
+        const numEl = document.getElementById('ci-rate-num');
+        const sliderEl = document.getElementById('ci-rate');
+        if (numEl && sliderEl) numEl.value = sliderEl.value;
+    };
 
-    // Compute compound interest: A = P * (1 + r/n)^(n*t)
+    // Compound interest calculator with optional monthly contributions.
     window.compInterest = function () {
         const principalEl = document.getElementById('ci-principal');
-        const rateEl = document.getElementById('ci-rate');
+        const rateNumEl = document.getElementById('ci-rate-num');
         const yearsEl = document.getElementById('ci-years');
+        const monthlyEl = document.getElementById('ci-monthly');
         const compoundEl = document.getElementById('ci-compound');
         const resultEl = document.getElementById('ci-result');
 
-        if (!principalEl || !rateEl || !yearsEl || !compoundEl || !resultEl) return;
+        if (!principalEl || !rateNumEl || !yearsEl || !monthlyEl || !compoundEl || !resultEl) return;
 
         const principal = parseFloat(principalEl.value);
-        const rate = parseFloat(rateEl.value);
+        const rate = parseFloat(rateNumEl.value);
         const years = parseFloat(yearsEl.value);
+        const monthly = parseFloat(monthlyEl.value) || 0;
         const n = parseInt(compoundEl.value, 10);
 
         if (isNaN(principal) || principal <= 0) {
@@ -37,34 +47,82 @@
             resultEl.innerHTML = '<div class="alert-error">Please enter a valid number of years (1 or more).</div>';
             return;
         }
+        if (isNaN(rate) || rate <= 0) {
+            resultEl.innerHTML = '<div class="alert-error">Please enter a valid annual interest rate greater than 0%.</div>';
+            return;
+        }
 
-        const rn = rate / 100 / n;
-        const amount = principal * Math.pow(1 + rn, n * years);
+        const months = Math.round(years * 12);
+        let final;
+        let interest;
+        let yearly = [];
+
+        if (monthly > 0) {
+            // Simulate month by month: monthly deposits, monthly compounding.
+            const rMonth = rate / 100 / 12;
+            let balance = principal;
+            const points = [principal];
+            for (let m = 1; m <= months; m++) {
+                balance = balance * (1 + rMonth) + monthly;
+                if (m % 12 === 0) points.push(balance);
+            }
+            if (points.length === 1 || months % 12 !== 0) {
+                // ensure the fractional-year endpoint is captured
+                if (months % 12 !== 0) points.push(balance);
+            }
+            final = balance;
+            interest = final - principal - monthly * months;
+            // rebuild yearly series aligned by integer years
+            yearly = [];
+            const nyears = Math.floor(months / 12);
+            let b = principal;
+            yearly.push(b);
+            for (let y = 0; y < Math.max(1, Math.max(Math.ceil(years), nyears)); y++) {
+                for (let m = 0; m < 12; m++) {
+                    if ((y * 12 + m + 1) <= months) b = b * (1 + rMonth) + monthly;
+                }
+                yearly.push(b);
+            }
+        } else {
+            // No deposits: use closed-form with the chosen compounding frequency.
+            const rn = rate / 100 / n;
+            final = principal * Math.pow(1 + rn, n * years);
+            interest = final - principal;
+            const nyears = Math.max(1, Math.ceil(years));
+            yearly = [];
+            for (let y = 0; y <= nyears; y++) {
+                yearly.push(principal * Math.pow(1 + rn, n * y));
+            }
+        }
+
+        let depositsLine = '';
+        if (monthly > 0) {
+            const totalDeposited = principal + monthly * months;
+            depositsLine = '<div class="calc-line"><span class="text-soft">Total deposited</span>' + money(totalDeposited) + '</div>';
+        }
 
         resultEl.innerHTML =
-            '<div class="calc-line"><span class="text-soft">Final amount</span><strong>' + money(amount) + '</strong></div>' +
+            '<div class="calc-line"><span class="text-soft">Final amount</span><strong>' + money(final) + '</strong></div>' +
+            depositsLine +
             '<div class="calc-line"><span class="text-soft">Principal</span>' + money(principal) + '</div>' +
-            '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(amount - principal) + '</div>';
+            (monthly > 0 ? '<div class="calc-line"><span class="text-soft">Total contributions</span>' + money(monthly * months) + '</div>' : '') +
+            '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(interest) + '</div>';
 
-        renderChart(principal, rn, n, years);
+        renderChart(yearly);
     };
 
     // Draw the year-by-year growth curve.
-    function renderChart(principal, rn, n, years) {
+    function renderChart(series) {
         const canvas = document.getElementById('ci-chart');
         if (!canvas || typeof Chart === 'undefined') return;
-
-        const nyears = Math.max(1, Math.ceil(years));
-        const labels = [];
-        const data = [];
-        for (let y = 0; y <= nyears; y++) {
-            labels.push('Year ' + y);
-            data.push(principal * Math.pow(1 + rn, n * y));
-        }
+        if (!series || series.length === 0) return;
 
         if (window.ciChart instanceof Chart) {
             window.ciChart.destroy();
         }
+
+        const labels = [];
+        for (let i = 0; i < series.length; i++) labels.push('Year ' + i);
 
         // Pull theme colors from CSS variables if present.
         const css = getComputedStyle(document.documentElement);
@@ -78,7 +136,7 @@
                 labels: labels,
                 datasets: [{
                     label: 'Balance',
-                    data: data,
+                    data: series,
                     borderColor: accent,
                     backgroundColor: accent + '22',
                     fill: true,
