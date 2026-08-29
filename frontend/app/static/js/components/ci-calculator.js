@@ -5,6 +5,8 @@
         return Number(n).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     }
 
+    let lastSeries = null; // keep the last chart series so we can redraw on theme change
+
     // Compound interest calculator with optional monthly contributions.
     window.compInterest = function () {
         const principalEl = document.getElementById('ci-principal');
@@ -91,8 +93,14 @@
             (monthly > 0 ? '<div class="calc-line"><span class="text-soft">Total contributions</span>' + money(monthly * months) + '</div>' : '') +
             '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(interest) + '</div>';
 
+        lastSeries = yearly;
         renderChart(yearly);
     };
+
+    // Re-render the existing chart with fresh colors when the theme flips.
+    document.addEventListener('theme-changed', function () {
+        if (lastSeries && lastSeries.length) renderChart(lastSeries);
+    });
 
     // Draw the year-by-year growth curve.
     function renderChart(series) {
