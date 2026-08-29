@@ -287,3 +287,12 @@ input::placeholder { color: var(--text-faint); }
 .overspend-note { color: var(--text-soft); font-size: .85rem; }
 .backup-status-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
 .flex.col { flex-direction: column; }
+
+/* ---------- CI Calculator ---------- */
+.calc-body { max-width: 420px; }
+.calc-body input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0; }
+.calc-body .form-group-inline { margin-bottom: 18px; }
+.calc-result { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.calc-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: .95rem; }
+.calc-line strong { color: var(--accent); font-size: 1.05rem; }
+.alert-error { background: rgba(235,87,87,.12); color: var(--danger); border: 1px solid rgba(235,87,87,.35); border-radius: 7px; padding: 9px 12px; font-size: .88rem; }
