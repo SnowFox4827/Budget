@@ -90,10 +90,10 @@
         }
 
         resultEl.innerHTML =
-            '<div class="calc-line"><span class="text-soft">Final amount</span><strong>' + money(final) + '</strong></div>' +
             '<div class="calc-line"><span class="text-soft">Principal</span>' + money(principal) + '</div>' +
             (monthly > 0 ? '<div class="calc-line"><span class="text-soft">Total contributions</span>' + money(monthly * months) + '</div>' : '') +
-            '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(interest) + '</div>';
+            '<div class="calc-line"><span class="text-soft">Interest earned</span>' + money(interest) + '</div>' +
+            '<div class="calc-line"><span class="text-soft">Final amount</span><strong>' + money(final) + '</strong></div>';
 
         lastSeries = yearly;
         renderChart(yearly);
