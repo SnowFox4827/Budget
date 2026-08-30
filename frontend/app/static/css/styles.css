@@ -320,3 +320,80 @@ input::placeholder { color: var(--text-faint); }
 }
 .calc-milestone-toggle { display: block; margin: 10px auto 0; }
 @media (max-width: 860px) { .calc-chart { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); } }
+
+/* ---------- Mortgage Calculator ---------- */
+.d-flex { display: flex; align-items: center; }
+.form-control {
+    width: 100%;
+    padding: 8px 11px;
+    font-size: .9rem;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    font-family: inherit;
+}
+.form-control:focus { outline: none; border-color: var(--accent); }
+
+.mortgage-summary { display: none; }
+
+.mortgage-view-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+.view-tab {
+    border: none;
+    background: none;
+    color: var(--text-soft);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 500;
+    font-family: inherit;
+    border-radius: 6px;
+}
+.view-tab.active {
+    background: var(--surface-2);
+    color: var(--accent);
+    border: 1px solid var(--border-strong);
+}
+
+.chart-wrap { position: relative; height: 340px; }
+
+.table-responsive { overflow-x: auto; }
+.table-scroll { overflow-y: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.table thead th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 2px solid var(--border-strong);
+    color: var(--text-soft);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+}
+.table tbody td { padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.table tbody tr:hover { background: var(--surface-2); }
+
+/* mortgage readout: adds-up style like the CI calculator */
+.readout-label {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-soft);
+    margin: 10px 0 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+.readout-label:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.calc-line .plus { color: var(--text-soft); margin: 0 6px; }
+
+/* keep the mortgage tab compact so it fits within the same window height as the other tabs */
+#mortgage-sec .form-group { margin-bottom: 10px; }
+#mortgage-sec .calc-line { padding: 3px 0; font-size: .9rem; }
+#mortgage-sec .calc-result { margin-top: 12px; padding-top: 10px; }
+#mortgage-sec .readout-label { margin: 7px 0 2px; padding-top: 6px; }
+#mortgage-sec .calc-settings { align-content: start; }
+#mortgage-sec .chart-wrap { height: 300px; }
