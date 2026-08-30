@@ -101,7 +101,7 @@
             }
         } else {
             af += '<div class="calc-line"><span class="text-soft">Take-home needed</span><strong>' + money(target25) + '/mo</strong></div>';
-            af += '<div class="calc-line"><span class="text-soft">Take-home needed</span>' + money(target25 * 12) + '/yr</div>';
+            af += '<div class="calc-line"><span class="text-soft">That\u2019s about</span><strong>' + money(target25 * 12) + '/yr</strong></div>';
         }
         document.getElementById('mort-afford').innerHTML = af;
 
