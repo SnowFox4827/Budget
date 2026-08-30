@@ -389,3 +389,11 @@ input::placeholder { color: var(--text-faint); }
 }
 .readout-label:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 .calc-line .plus { color: var(--text-soft); margin: 0 6px; }
+
+/* keep the mortgage tab compact so it fits within the same window height as the other tabs */
+#mortgage-sec .form-group { margin-bottom: 10px; }
+#mortgage-sec .calc-line { padding: 3px 0; font-size: .9rem; }
+#mortgage-sec .calc-result { margin-top: 12px; padding-top: 10px; }
+#mortgage-sec .readout-label { margin: 7px 0 2px; padding-top: 6px; }
+#mortgage-sec .calc-settings { align-content: start; }
+#mortgage-sec .chart-wrap { height: 300px; }
