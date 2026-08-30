@@ -34,6 +34,7 @@ Because the frontend proxies `/api`, the browser talks to a **single origin** �
 - **Transactions & Overspend Protection:** Expenses, income, and transfers with automated balance recalculation and overspend shortfall resolution.
 - **Reallocate Funds:** Shift dollars between allocations or the unassigned pool.
 - **Compound Interest Calculator:** Dedicated "CI Calculator" tab with principal, rate, time, and compounding frequency; typeable interest rate, optional monthly contributions, compounding frequency, and instant math with final amount and interest earned, plus a year-by-year growth curve chart (Chart.js).
+- **Mortgage Calculator:** Dedicated "Mortgage" tab with home value, down payment (auto-syncing $ / % ), loan term, interest rate, property tax, insurance, and HOA. Shows a monthly-payment and full-loan "adds up" breakdown, an "Affordability (25% rule)" check against your take-home pay, and Balance / Breakdown / Amortization views with a Chart.js balance-over-time curve.
 - **Card ⇄ List Views** for Allocations and Accounts.
 - **Light & Dark** "paper & envelopes" themes with a sliding toggle (persisted in `localStorage`).
 - **Modular Codebase:** Decoupled backend blueprints and componentized ES frontend modules.
@@ -87,7 +88,9 @@ Budget/
                     ├── allocations.js  # Envelope cards, bars & transfers
                     ├── summary.js      # Cash summary & badge indicators
                     ├── transactions.js # Transaction log & filter logic
-                    └── backup.js       # Backup status & download handlers
+                    ├── backup.js       # Backup status & download handlers
+                    ├── ci-calculator.js      # Compound interest calculator component
+                    └── mortgage-calculator.js# Mortgage & affordability calculator component
 │
 ├── scripts/
 │   └── backup.py             # Automated dual-format backup runner
