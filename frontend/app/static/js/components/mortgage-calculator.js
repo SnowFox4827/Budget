@@ -82,6 +82,26 @@
             out += '<div class="calc-line"><span class="text-soft">+ HOA</span>' + money(hoaMonthly * months) + '</div>';
         }
         out += '<div class="calc-line"><span class="text-soft">Total cost</span><strong>' + money(totalCost) + '</strong></div>';
+
+        // ---- salary needed for the 25% housing rule --------------------------
+        const takeHome = parseFloat($('mort-takehome').value);
+        const target25 = totalMonthly / 0.25; // required monthly take-home for <=25%
+        if (!isNaN(takeHome) && takeHome > 0) {
+            const ratio = totalMonthly / takeHome;
+            const ok = ratio <= 0.25;
+            out += '<div class="readout-label">Affordability (25% rule)</div>';
+            out += '<div class="calc-line"><span class="text-soft">Monthly payment</span>' + money(totalMonthly) + '</div>';
+            out += '<div class="calc-line"><span class="text-soft">Your take-home</span>' + money(takeHome) + '</div>';
+            out += '<div class="calc-line"><span class="text-soft">% of take-home</span><strong>' + (ratio * 100).toFixed(1) + '%</strong></div>';
+            out += '<div class="calc-line" style="margin-top:6px"><span class="text-soft">' + (ok ? '✓ Within' : 'Over') + ' 25%</span><strong style="color:' + (ok ? 'var(--green, #22c55e)' : 'var(--red, #ef4444)') + '">' + (ok ? 'Affordable' : 'Too much') + '</strong></div>';
+            if (!ok) {
+                out += '<div class="calc-line"><span class="text-soft">Take-home needed</span><strong>' + money(target25) + '/mo</strong></div>';
+            }
+        } else {
+            out += '<div class="readout-label">Affordability (25% rule)</div>';
+            out += '<div class="calc-line"><span class="text-soft">Take-home needed</span><strong>' + money(target25) + '/mo</strong></div>';
+            out += '<div class="calc-line"><span class="text-soft">Take-home needed</span>' + money(target25 * 12) + '/yr</div>';
+        }
         document.getElementById('mort-readout').innerHTML = out;
 
         // ---- build amortization schedule + yearly balance curve ---------------

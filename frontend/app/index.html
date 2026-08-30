@@ -299,6 +299,10 @@
                         <label>HOA ($/mo)</label>
                         <input type="number" id="mort-hoa" class="form-control" value="0" step="10">
                     </div>
+                    <div class="form-group">
+                        <label>Monthly Take-Home Pay ($)</label>
+                        <input type="number" id="mort-takehome" class="form-control" value="" step="50" placeholder="Optional">
+                    </div>
                     <button class="btn btn-primary w-100" onclick="calcMortgage()">Calculate</button>
                     <div class="calc-result" id="mort-readout">
                         <!-- lines built by calcMortgage() -->
