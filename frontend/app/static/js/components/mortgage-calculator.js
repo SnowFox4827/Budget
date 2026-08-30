@@ -106,12 +106,23 @@
         document.querySelectorAll('.mortgage-view-tabs .view-tab').forEach(b =>
             b.classList.toggle('active', b.dataset.view === mode)
         );
-        const showBalance = mode === 'balance';
-        const showAmort = mode === 'amort';
-        $('mort-chart-wrap').style.display = showBalance ? 'block' : 'none';
-        $('mort-amort-wrap').style.display = showAmort ? 'block' : 'none';
-        // Show the donut-style breakdown: reuse the chart canvas with a pie dataset.
-        if (mode === 'breakdown') renderBreakdown();
+
+        if (lastBalance == null) calcMortgage();
+
+        if (mode === 'breakdown') {
+            // Show the container FIRST so the doughnut is not drawn on a hidden canvas.
+            $('mort-chart-wrap').style.display = 'block';
+            $('mort-amort-wrap').style.display = 'none';
+            renderBreakdown();
+        } else if (mode === 'amort') {
+            $('mort-chart-wrap').style.display = 'none';
+            $('mort-amort-wrap').style.display = 'block';
+            if (lastSchedule.length) renderAmort(lastSchedule);
+        } else { // balance
+            $('mort-chart-wrap').style.display = 'block';
+            $('mort-amort-wrap').style.display = 'none';
+            renderChart(lastBalance);
+        }
     };
 
     // ---- chart helpers ------------------------------------------------------------
