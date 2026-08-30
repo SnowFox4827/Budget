@@ -62,11 +62,27 @@
         const totalInterest = pi * months - principal;
         const totalCost = principal + totalInterest + taxIns * months + hoaMonthly * months;
 
-        // ---- summary ----------------------------------------------------------
-        $('mort-monthly').textContent = money(totalMonthly);
-        $('mort-princint').textContent = money(pi);
-        $('mort-totalInterest').textContent = money(totalInterest);
-        $('mort-totalCost').textContent = money(totalCost);
+        // ---- summary (readout, adds-up style like the CI calculator) ------------
+        const monthlyTaxIns = (annualTax + annualIns) / 12;
+        let out = '';
+        out += '<div class="readout-label">Monthly payment</div>';
+        out += '<div class="calc-line"><span class="text-soft">Principal &amp; Interest</span>' + money(pi) + '</div>';
+        out += '<div class="calc-line"><span class="text-soft">+ Taxes &amp; Insurance</span>' + money(monthlyTaxIns) + '</div>';
+        if (hoaMonthly > 0) {
+            out += '<div class="calc-line"><span class="text-soft">+ HOA</span>' + money(hoaMonthly) + '</div>';
+        }
+        out += '<div class="calc-line"><span class="text-soft">Monthly payment</span><strong>' + money(totalMonthly) + '</strong></div>';
+
+        out += '<div class="readout-label">Over the full ' + termYears + '-year loan</div>';
+        out += '<div class="calc-line"><span class="text-soft">Loan amount</span>' + money(principal) + '</div>';
+        out += '<div class="calc-line"><span class="text-soft">+ Total interest</span>' + money(totalInterest) + '</div>';
+        const taxInsTotal = monthlyTaxIns * months;
+        out += '<div class="calc-line"><span class="text-soft">+ Taxes &amp; Insurance</span>' + money(taxInsTotal) + '</div>';
+        if (hoaMonthly > 0) {
+            out += '<div class="calc-line"><span class="text-soft">+ HOA</span>' + money(hoaMonthly * months) + '</div>';
+        }
+        out += '<div class="calc-line"><span class="text-soft">Total cost</span><strong>' + money(totalCost) + '</strong></div>';
+        document.getElementById('mort-readout').innerHTML = out;
 
         // ---- build amortization schedule + yearly balance curve ---------------
         const table = [];

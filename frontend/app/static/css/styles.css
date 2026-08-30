@@ -335,21 +335,7 @@ input::placeholder { color: var(--text-faint); }
 }
 .form-control:focus { outline: none; border-color: var(--accent); }
 
-.mortgage-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: 16px;
-}
-.summary-item {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 10px 12px;
-}
-.summary-item .text-soft { display: block; font-size: .78rem; }
-.summary-value { font-size: 1.15rem; color: var(--accent); }
-.summary-item strong { color: var(--accent); font-size: 1.02rem; }
+.mortgage-summary { display: none; }
 
 .mortgage-view-tabs {
     display: flex;
@@ -390,3 +376,16 @@ input::placeholder { color: var(--text-faint); }
 }
 .table tbody td { padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 .table tbody tr:hover { background: var(--surface-2); }
+
+/* mortgage readout: adds-up style like the CI calculator */
+.readout-label {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-soft);
+    margin: 10px 0 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+.readout-label:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.calc-line .plus { color: var(--text-soft); margin: 0 6px; }

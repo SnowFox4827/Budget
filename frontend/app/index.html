@@ -303,23 +303,8 @@
                 </div>
 
                 <div class="calc-graph mortgage-results">
-                    <div class="mortgage-summary">
-                        <div class="summary-item">
-                            <span class="text-soft">Monthly Payment</span>
-                            <strong id="mort-monthly" class="summary-value">$—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span class="text-soft">Principal &amp; Interest</span>
-                            <strong id="mort-princint">$—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span class="text-soft">Total Interest Paid</span>
-                            <strong id="mort-totalInterest">$—</strong>
-                        </div>
-                        <div class="summary-item">
-                            <span class="text-soft">Total Loan Cost</span>
-                            <strong id="mort-totalCost">$—</strong>
-                        </div>
+                    <div class="calc-result" id="mort-readout">
+                        <!-- lines built by calcMortgage() -->
                     </div>
                     <div class="mortgage-view-tabs">
                         <button class="view-tab active" data-view="balance" onclick="mortgageView('balance')">Balance</button>
