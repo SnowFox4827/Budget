@@ -41,6 +41,7 @@ import {
     handleSnapshotRestore
 } from './components/backup.js';
 import './components/ci-calculator.js';
+import './components/mortgage-calculator.js';
 
 // Global Data Fetch
 export async function fetchDashboard() {

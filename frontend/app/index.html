@@ -58,6 +58,7 @@
         <button class="tab-btn" data-tab="accounts-sec" onclick="switchTab('accounts-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 .8 1 4v1h14V4zM2.6 6.2h2v5.4h-2zM7 6.2h2v5.4H7zM11.4 6.2h2v5.4h-2zM.6 13h14.8v.9H.6z"/></svg> Accounts</button>
         <button class="tab-btn" data-tab="transactions-sec" onclick="switchTab('transactions-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg> Transactions</button>
         <button class="tab-btn" data-tab="ci-calc-sec" onclick="switchTab('ci-calc-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg> CI Calculator</button>
+        <button class="tab-btn" data-tab="mortgage-sec" onclick="switchTab('mortgage-sec')"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg> Mortgage</button>
     </div>
 
     <!-- ALLOCATIONS SECTION -->
@@ -253,6 +254,90 @@
         </div>
     </div>
 </div>
+
+    <!-- MORTGAGE CALCULATOR SECTION -->
+    <div class="tab-pane" id="mortgage-sec">
+        <div class="section-head">
+            <div class="left">
+                <h5 class="section-title">Mortgage Calculator</h5>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body calc-layout">
+                <div class="calc-settings">
+                    <div class="form-group">
+                        <label>Home Value ($)</label>
+                        <input type="number" id="mort-homeValue" class="form-control" value="450000" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Down Payment ($)</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" id="mort-downPayment" class="form-control" value="90000" step="500">
+                            <input type="number" id="mort-downPct" class="form-control" value="20" step="0.5" min="0" max="100" title="Down payment percentage">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Loan Term (Years)</label>
+                        <select id="mort-term" class="form-control">
+                            <option value="15">15 Years</option>
+                            <option value="30" selected>30 Years</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Interest Rate (%)</label>
+                        <input type="number" id="mort-rate" class="form-control" value="6.5" step="0.1" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Property Tax ($/yr)</label>
+                        <input type="number" id="mort-tax" class="form-control" value="3600" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Home Insurance ($/yr)</label>
+                        <input type="number" id="mort-insurance" class="form-control" value="1200" step="50">
+                    </div>
+                    <div class="form-group">
+                        <label>HOA ($/mo)</label>
+                        <input type="number" id="mort-hoa" class="form-control" value="0" step="10">
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="calcMortgage()">Calculate</button>
+                </div>
+
+                <div class="calc-graph mortgage-results">
+                    <div class="mortgage-summary">
+                        <div class="summary-item">
+                            <span class="text-soft">Monthly Payment</span>
+                            <strong id="mort-monthly" class="summary-value">$—</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-soft">Principal &amp; Interest</span>
+                            <strong id="mort-princint">$—</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-soft">Total Interest Paid</span>
+                            <strong id="mort-totalInterest">$—</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-soft">Total Loan Cost</span>
+                            <strong id="mort-totalCost">$—</strong>
+                        </div>
+                    </div>
+                    <div class="mortgage-view-tabs">
+                        <button class="view-tab active" data-view="balance" onclick="mortgageView('balance')">Balance</button>
+                        <button class="view-tab" data-view="breakdown" onclick="mortgageView('breakdown')">Breakdown</button>
+                        <button class="view-tab" data-view="amort" onclick="mortgageView('amort')">Amortization</button>
+                    </div>
+                    <div class="chart-wrap" id="mort-chart-wrap">
+                        <canvas id="mortChart"></canvas>
+                    </div>
+                    <div class="chart-wrap" id="mort-amort-wrap" style="display:none;">
+                        <div class="table-responsive table-scroll" style="max-height:400px;">
+                            <table class="table table-sm" id="mort-amort-table"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <!-- Add/Edit Account Modal -->
 <div class="modal" id="accountModal">
