@@ -428,7 +428,6 @@
                             <option value="expense">Expense (-)</option>
                             <option value="income">Income (+)</option>
                             <option value="transfer">Transfer</option>
-                            <option value="move">Move Allocation</option>
                         </select>
                     </div>
                     <div class="form-group" id="trans-desc-group">
@@ -450,14 +449,7 @@
                     <div class="form-group" id="trans-to-group" style="display:none">
                         <label>Move To</label>
                         <select id="trans-to-select"></select>
-                    </div>
-                    <div class="form-group" id="trans-move-group" style="display:none">
-                        <label>Allocation to Move</label>
-                        <select id="trans-move-alloc-select"></select>
-                    </div>
-                    <div class="form-group" id="trans-move-to-group" style="display:none">
-                        <label>Move To Account</label>
-                        <select id="trans-move-account-select"></select>
+                        <small class="form-hint">Pick an account to relocate the whole allocation, or an envelope to transfer an amount.</small>
                     </div>
                     <div class="form-group" id="trans-acc-wrapper">
                         <label>Account / Envelope</label>
