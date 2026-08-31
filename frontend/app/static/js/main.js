@@ -31,9 +31,7 @@ import {
     toggleTransType,
     handleTransactionSubmit,
     resolveOverspend,
-    deleteTransaction,
-    showMoveAllocationModal,
-    moveAllocation
+    deleteTransaction
 } from './components/transactions.js';
 import {
     showBackupModal,
@@ -89,8 +87,6 @@ window.showEditTransactionModal = showEditTransactionModal;
 window.toggleTransType = toggleTransType;
 window.resolveOverspend = () => resolveOverspend(fetchDashboard);
 window.deleteTransaction = (id) => deleteTransaction(id, fetchDashboard);
-window.showMoveAllocationModal = showMoveAllocationModal;
-window.moveAllocation = moveAllocation;
 
 // Backup handlers
 window.showBackupModal = showBackupModal;

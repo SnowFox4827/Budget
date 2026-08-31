@@ -1,6 +1,6 @@
 import { state, uiState, fmtMoney } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
-import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
+import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi, updateAllocationApi } from '../api.js';
 
 
 export function renderTransactions() {
@@ -175,6 +175,8 @@ export function toggleTransType() {
     const dateGroup = document.getElementById('trans-date-group');
     const fromGroup = document.getElementById('trans-from-group');
     const toGroup = document.getElementById('trans-to-group');
+    const moveGroup = document.getElementById('trans-move-group');
+    const moveToGroup = document.getElementById('trans-move-to-group');
     const show = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
 
     // Fields hidden for a given type must NOT carry `required`, or the browser
@@ -191,26 +193,57 @@ export function toggleTransType() {
         show(dateGroup, false);
         show(fromGroup, true);
         show(toGroup, true);
+        show(moveGroup, false);
+        show(moveToGroup, false);
 
         setRequired('trans-account-select', false);
         setRequired('trans-desc', false);
         setRequired('trans-date', false);
         setRequired('trans-from-select', true);
         setRequired('trans-to-select', true);
+        setRequired('trans-move-alloc-select', false);
+        setRequired('trans-move-account-select', false);
         populateTransactionTransfers();
+    } else if (type === 'move') {
+        const amountGroup = document.getElementById('trans-amount-group');
+        show(accWrapper, false);
+        show(descGroup, false);
+        show(dateGroup, false);
+        show(fromGroup, false);
+        show(toGroup, false);
+        show(moveGroup, true);
+        show(moveToGroup, true);
+        show(amountGroup, false);
+
+        setRequired('trans-account-select', false);
+        setRequired('trans-desc', false);
+        setRequired('trans-date', false);
+        setRequired('trans-amount', false);
+        setRequired('trans-from-select', false);
+        setRequired('trans-to-select', false);
+        setRequired('trans-move-alloc-select', true);
+        setRequired('trans-move-account-select', true);
+        populateMoveAllocationOptions();
     } else {
         const isIncome = type === 'income';
+        const amountGroup = document.getElementById('trans-amount-group');
         show(accWrapper, !isIncome);
         show(descGroup, !isIncome);
         show(dateGroup, true);
         show(fromGroup, false);
         show(toGroup, false);
+        show(moveGroup, false);
+        show(moveToGroup, false);
+        show(amountGroup, true);
 
         setRequired('trans-account-select', !isIncome);
         setRequired('trans-desc', !isIncome);
         setRequired('trans-date', true);
+        setRequired('trans-amount', true);
         setRequired('trans-from-select', false);
         setRequired('trans-to-select', false);
+        setRequired('trans-move-alloc-select', false);
+        setRequired('trans-move-account-select', false);
     }
 }
 
@@ -259,6 +292,33 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
             closeModal('transactionModal');
             fetchDashboard();
         }
+        return;
+    }
+
+    // "Move Allocation" reparents a whole allocation to another account,
+    // reusing the allocation-update endpoint (balances reconcile + transfer logged).
+    if (type === 'move') {
+        const id = document.getElementById('trans-move-alloc-select').value;
+        const newAccountId = document.getElementById('trans-move-account-select').value;
+        if (!id || !newAccountId) {
+            alert('Please choose an allocation and a destination account.');
+            return;
+        }
+        const al = state.allocations.find(x => x.id == id);
+        if (!al) return;
+        if (al.account_id == newAccountId) {
+            alert('That allocation is already in this account.');
+            return;
+        }
+        await updateAllocationApi(id, {
+            name: al.name,
+            target_amount: al.target_amount || 0,
+            amount_available: al.amount_available || 0,
+            target_date: al.target_date || '',
+            account_id: newAccountId
+        });
+        closeModal('transactionModal');
+        fetchDashboard();
         return;
     }
 
@@ -338,64 +398,21 @@ export async function deleteTransaction(id, fetchDashboard) {
     }
 }
 
-export function showMoveAllocationModal() {
-    const allocSel = document.getElementById('move-alloc-select');
-    const accSel = document.getElementById('move-account-select');
+export function populateMoveAllocationOptions() {
+    const allocSel = document.getElementById('trans-move-alloc-select');
+    const accSel = document.getElementById('trans-move-account-select');
     if (!allocSel || !accSel) return;
 
-    // All allocation options (all accounts, including Unassigned ones).
     allocSel.innerHTML = state.allocations.map(al =>
         `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`
     ).join('');
 
-    // Target must be a real (non-system) account, matching the allocation modal.
     const realAccs = state.accounts.filter(a => !a.is_system);
     accSel.innerHTML = realAccs.map(a =>
         `<option value="${a.id}">${a.name}</option>`
     ).join('');
 
-    // If every allocation already lives in a real account, pre-select its current owner
-    // so the user can start by picking the allocation they want to relocate.
-    if (state.allocations.length > 0) {
-        const first = state.allocations[0];
-        if (first.account_id) {
-            accSel.value = first.account_id;
-        }
+    if (state.allocations.length > 0 && state.allocations[0].account_id) {
+        accSel.value = state.allocations[0].account_id;
     }
-
-    openModal('moveAllocationModal');
-}
-
-export async function moveAllocation() {
-    const allocSel = document.getElementById('move-alloc-select');
-    const accSel = document.getElementById('move-account-select');
-    const id = parseInt(allocSel.value, 10);
-    const newAccountId = accSel.value;
-    if (!allocSel.value || !newAccountId) {
-        alert('Please choose an allocation and a destination account.');
-        return false;
-    }
-
-    const al = state.allocations.find(x => x.id === id);
-    if (!al) return false;
-
-    if (al.account_id == newAccountId) {
-        alert('That allocation is already in this account.');
-        return false;
-    }
-
-    // Reuse the existing allocation-update endpoint, sending the full current
-    // allocation plus the new owning account. The backend reparents the envelope
-    // and reconciles account balances in one step.
-    await updateAllocationApi(id, {
-        name: al.name,
-        target_amount: al.target_amount || 0,
-        amount_available: al.amount_available || 0,
-        target_date: al.target_date || '',
-        account_id: newAccountId
-    });
-
-    closeModal('moveAllocationModal');
-    fetchDashboard();
-    return false;
 }
