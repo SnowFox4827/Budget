@@ -401,7 +401,7 @@
                         <input type="date" id="alloc-date">
                     </div>
                     <div class="form-group">
-                        <label>Associated Account</label>
+                        <label>Associated Account (change to move this allocation to another account)</label>
                         <select id="alloc-account-select" required></select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Save Allocation</button>
@@ -449,6 +449,7 @@
                     <div class="form-group" id="trans-to-group" style="display:none">
                         <label>Move To</label>
                         <select id="trans-to-select"></select>
+                        <small class="form-hint">Pick an account to relocate the whole allocation, or an envelope to transfer an amount.</small>
                     </div>
                     <div class="form-group" id="trans-acc-wrapper">
                         <label>Account / Envelope</label>

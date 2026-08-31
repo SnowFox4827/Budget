@@ -86,11 +86,13 @@ def manage_allocation(alloc_id):
         target_date = data.get('target_date', '')
         account_id = data.get('account_id')
 
-        # Reflect changes to assigned money: increasing the envelope pulls funds from
-        # Unassigned into the owning account's total; decreasing returns them.
-        cur = cursor.execute('SELECT amount_available FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
+        # Load the allocation's current state so we can reconcile account balances
+        # when its funding amount AND/OR its owning account changes. This is what
+        # lets an allocation be moved to another account in one edit (previously
+        # you had to create a new one, transfer, then delete the old one).
+        cur = cursor.execute('SELECT amount_available, account_id FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
         old_available = float(cur['amount_available']) if cur else 0.0
-        delta = amount_available - old_available
+        old_account_id = cur['account_id'] if cur else None
 
         cursor.execute('''
             UPDATE allocations
@@ -98,15 +100,47 @@ def manage_allocation(alloc_id):
             WHERE id = ?
         ''', (name, target_amount, amount_available, target_date, account_id, alloc_id))
 
-        if cur is not None and delta != 0:
-            u = _unassigned_id(cursor)
-            if u is not None and (account_id is None or int(account_id) != u):
-                # Money moves between Unassigned and the real account that owns the envelope.
-                cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?', (delta, u))
-                cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?', (delta, int(account_id)))
-            elif u is not None:
-                # Envelope owned by Unassigned itself stays neutral.
-                pass
+        u = _unassigned_id(cursor)
+
+        def _is_unassigned(ref):
+            return ref is None or u is None or int(ref) == u
+
+        old_real = cur is not None and not _is_unassigned(old_account_id)
+        new_real = not _is_unassigned(account_id)
+
+        if u is not None:
+            # Give the old envelope's funding back to Unassigned if it was parked
+            # with a real account.
+            if old_real:
+                cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?',
+                               (old_available, int(old_account_id)))
+                cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?',
+                               (old_available, u))
+            # Fund the new envelope: pull the new amount from Unassigned into the
+            # real account that now owns it. Handles same-account amount changes
+            # (matching the previous delta logic) and reparenting between accounts.
+            if new_real:
+                cursor.execute('UPDATE accounts SET balance = balance - ? WHERE id = ?',
+                               (amount_available, u))
+                cursor.execute('UPDATE accounts SET balance = balance + ? WHERE id = ?',
+                               (amount_available, int(account_id)))
+
+        # Record a transfer transaction so moving an envelope between accounts
+        # shows up in the transactions view, mirroring the transfer endpoint.
+        if cur is not None and old_account_id != account_id:
+            date_str = datetime.now().strftime('%Y-%m-%d')
+            desc = 'Move allocation: {}'.format(name)
+            old_disp = u if _is_unassigned(old_account_id) else int(old_account_id)
+            new_disp = u if _is_unassigned(account_id) else int(account_id)
+            if old_disp == new_disp:
+                cursor.execute('INSERT INTO transactions (description, amount, date, account_id, allocation_id, type) VALUES (?, ?, ?, ?, ?, ?)',
+                               (desc, amount_available, date_str, new_disp, alloc_id, 'transfer'))
+            else:
+                cursor.execute('INSERT INTO transactions (description, amount, date, account_id, allocation_id, type) VALUES (?, ?, ?, ?, ?, ?)',
+                               (desc, -amount_available, date_str, old_disp, alloc_id, 'transfer'))
+                cursor.execute('INSERT INTO transactions (description, amount, date, account_id, allocation_id, type) VALUES (?, ?, ?, ?, ?, ?)',
+                               (desc, amount_available, date_str, new_disp, alloc_id, 'transfer'))
+
         conn.commit()
         conn.close()
         return jsonify({'success': True})

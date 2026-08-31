@@ -1,6 +1,6 @@
 import { state, uiState, fmtMoney } from '../state.js';
 import { openModal, closeModal } from '../modals.js';
-import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi } from '../api.js';
+import { createTransactionApi, updateTransactionApi, deleteTransactionApi, transferAllocationApi, updateAllocationApi } from '../api.js';
 
 
 export function renderTransactions() {
@@ -185,32 +185,25 @@ export function toggleTransType() {
         if (el) el.required = isVisible;
     };
 
-    if (type === 'transfer') {
-        show(accWrapper, false);
-        show(descGroup, false);
-        show(dateGroup, false);
-        show(fromGroup, true);
-        show(toGroup, true);
+    const isTransfer = type === 'transfer';
+    const isIncome = type === 'income';
+    const amountGroup = document.getElementById('trans-amount-group');
+    show(accWrapper, !isIncome && !isTransfer);
+    show(descGroup, !isIncome && !isTransfer);
+    show(dateGroup, !isTransfer);
+    show(fromGroup, isTransfer);
+    show(toGroup, isTransfer);
+    show(amountGroup, true);
 
-        setRequired('trans-account-select', false);
-        setRequired('trans-desc', false);
-        setRequired('trans-date', false);
-        setRequired('trans-from-select', true);
-        setRequired('trans-to-select', true);
+    setRequired('trans-account-select', !isIncome && !isTransfer);
+    setRequired('trans-desc', !isIncome && !isTransfer);
+    setRequired('trans-date', !isTransfer);
+    setRequired('trans-amount', true);
+    setRequired('trans-from-select', isTransfer);
+    setRequired('trans-to-select', isTransfer);
+
+    if (isTransfer) {
         populateTransactionTransfers();
-    } else {
-        const isIncome = type === 'income';
-        show(accWrapper, !isIncome);
-        show(descGroup, !isIncome);
-        show(dateGroup, true);
-        show(fromGroup, false);
-        show(toGroup, false);
-
-        setRequired('trans-account-select', !isIncome);
-        setRequired('trans-desc', !isIncome);
-        setRequired('trans-date', true);
-        setRequired('trans-from-select', false);
-        setRequired('trans-to-select', false);
     }
 }
 
@@ -222,13 +215,24 @@ export function populateTransactionTransfers() {
     const unassignedAcc = state.accounts.find(a => a.is_system);
     const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
     const unassignedOption = `<option value="${unassignedValue}">Unassigned Dollars ($${fmtMoney(unassignedAcc ? unassignedAcc.balance : 0)})</option>`;
-    let grouped = unassignedOption;
+
+    // From = allocations only (the envelope to transfer from / relocate).
+    let groupedFrom = unassignedOption;
     state.accounts.filter(a => !a.is_system).forEach(acc => {
         const allocs = state.allocations.filter(al => al.account_id == acc.id);
-        grouped += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('') + '</optgroup>';
+        groupedFrom += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('') + '</optgroup>';
     });
-    fromSelect.innerHTML = grouped;
-    toSelect.innerHTML = grouped;
+    fromSelect.innerHTML = groupedFrom;
+
+    // To = accounts (relocate the whole allocation) + allocations (transfer an amount).
+    let groupedTo = unassignedOption;
+    state.accounts.filter(a => !a.is_system).forEach(acc => {
+        const allocs = state.allocations.filter(al => al.account_id == acc.id);
+        const accOption = `<option value="account_${acc.id}">${acc.name} — move allocation here</option>`;
+        const envips = allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('');
+        groupedTo += accOption + (envips ? `<optgroup label="${acc.name} envelopes">` + envips + '</optgroup>' : '');
+    });
+    toSelect.innerHTML = groupedTo;
 }
 
 export function populateTransactionTransferEnvelopes() {
@@ -240,11 +244,38 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
     const id = document.getElementById('trans-id').value;
     const type = document.getElementById('trans-type').value;
 
-    // Transfer is handled by the dedicated transfer endpoint, which moves money
-    // across accounts/envelopes AND records a transfer transaction row.
+    // Transfer has two behaviors, chosen by what's picked in "Move To":
+    //  - picking an account ("account_<id>") relocates the WHOLE allocation there;
+    //  - picking an envelope or Unassigned transfers just the typed amount.
     if (type === 'transfer') {
         const fromVal = document.getElementById('trans-from-select').value;
         const toVal = document.getElementById('trans-to-select').value;
+
+        // Relocate the whole allocation to another account.
+        if ((toVal || '').toString().startsWith('account_')) {
+            const newAccountId = toVal.toString().split('_')[1];
+            const al = state.allocations.find(x => x.id == fromVal);
+            if (!al) {
+                alert('Pick a specific allocation in "Move From" — you can\'t relocate Unassigned Dollars.');
+                return;
+            }
+            if (al.account_id == newAccountId) {
+                alert('That allocation is already in this account.');
+                return;
+            }
+            await updateAllocationApi(al.id, {
+                name: al.name,
+                target_amount: al.target_amount || 0,
+                amount_available: al.amount_available || 0,
+                target_date: al.target_date || '',
+                account_id: newAccountId
+            });
+            closeModal('transactionModal');
+            fetchDashboard();
+            return;
+        }
+
+        // Amount-based transfer between envelopes / to unassigned.
         const destAlloc = !(toVal || '').toString().startsWith('unassigned')
             ? state.allocations.find(a => a.id == toVal)
             : null;
