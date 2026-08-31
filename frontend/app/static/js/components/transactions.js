@@ -125,9 +125,11 @@ export function populateSelectOptions() {
     if (transAccSelect) transAccSelect.innerHTML = groupedAccOptions;
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
     // Exclude the protected Unassigned (system) account from the allocations
-    // slicer/filter so it isn't shown as a filterable amount.
-    const realAccOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
-    if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    // slicer/filter so it isn't shown as a filterable amount, and list the
+    // accounts alphabetically by name in the filter dropdowns.
+    const realAccountsSorted = state.accounts.filter(a => !a.is_system).sort((a, b) => a.name.localeCompare(b.name));
+    const realAccOptions = realAccountsSorted.map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
+    if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + realAccountsSorted.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
     if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + realAccOptions;
 
     const allocOptions = state.allocations.map(al => `<option value="${al.id}">${al.name}</option>`).join('');
