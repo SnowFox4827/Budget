@@ -163,6 +163,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
                     Log Transaction
                 </button>
+                <button class="btn btn-sm btn-outline-primary" onclick="showMoveAllocationModal()" title="Move an allocation to a different account">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M3.646 2.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L4.5 3.707V10.5a.5.5 0 0 1-1 0V3.707L1.854 4.854a.5.5 0 1 1-.708-.708l2-2z"/><path d="M3.5 3h7a.5.5 0 0 1 0 1h-7v7a.5.5 0 0 1-1 0V3z"/></svg>
+                    Move Allocation
+                </button>
             </div>
         </div>
         <div class="table-wrap">
@@ -405,6 +409,32 @@
                         <select id="alloc-account-select" required></select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Save Allocation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Move Allocation to Another Account Modal -->
+<div class="modal" id="moveAllocationModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Move Allocation</h5>
+                <button type="button" class="btn-close" onclick="closeModal('moveAllocationModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="moveAllocationForm" onsubmit="return moveAllocation()">
+                    <div class="form-group">
+                        <label>Allocation to Move</label>
+                        <select id="move-alloc-select" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Move To Account</label>
+                        <select id="move-account-select" required></select>
+                    </div>
+                    <p class="text-muted small mb-2">This moves the whole allocation (name, target, and its funds) to the chosen account. Account balances are reconciled automatically.</p>
+                    <button type="submit" class="btn btn-primary w-100">Move Allocation</button>
                 </form>
             </div>
         </div>

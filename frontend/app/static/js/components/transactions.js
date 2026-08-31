@@ -337,3 +337,65 @@ export async function deleteTransaction(id, fetchDashboard) {
         fetchDashboard();
     }
 }
+
+export function showMoveAllocationModal() {
+    const allocSel = document.getElementById('move-alloc-select');
+    const accSel = document.getElementById('move-account-select');
+    if (!allocSel || !accSel) return;
+
+    // All allocation options (all accounts, including Unassigned ones).
+    allocSel.innerHTML = state.allocations.map(al =>
+        `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`
+    ).join('');
+
+    // Target must be a real (non-system) account, matching the allocation modal.
+    const realAccs = state.accounts.filter(a => !a.is_system);
+    accSel.innerHTML = realAccs.map(a =>
+        `<option value="${a.id}">${a.name}</option>`
+    ).join('');
+
+    // If every allocation already lives in a real account, pre-select its current owner
+    // so the user can start by picking the allocation they want to relocate.
+    if (state.allocations.length > 0) {
+        const first = state.allocations[0];
+        if (first.account_id) {
+            accSel.value = first.account_id;
+        }
+    }
+
+    openModal('moveAllocationModal');
+}
+
+export async function moveAllocation() {
+    const allocSel = document.getElementById('move-alloc-select');
+    const accSel = document.getElementById('move-account-select');
+    const id = parseInt(allocSel.value, 10);
+    const newAccountId = accSel.value;
+    if (!allocSel.value || !newAccountId) {
+        alert('Please choose an allocation and a destination account.');
+        return false;
+    }
+
+    const al = state.allocations.find(x => x.id === id);
+    if (!al) return false;
+
+    if (al.account_id == newAccountId) {
+        alert('That allocation is already in this account.');
+        return false;
+    }
+
+    // Reuse the existing allocation-update endpoint, sending the full current
+    // allocation plus the new owning account. The backend reparents the envelope
+    // and reconciles account balances in one step.
+    await updateAllocationApi(id, {
+        name: al.name,
+        target_amount: al.target_amount || 0,
+        amount_available: al.amount_available || 0,
+        target_date: al.target_date || '',
+        account_id: newAccountId
+    });
+
+    closeModal('moveAllocationModal');
+    fetchDashboard();
+    return false;
+}
