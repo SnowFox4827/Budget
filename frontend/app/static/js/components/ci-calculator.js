@@ -299,4 +299,8 @@
         }
         if (tip) tip.style.display = 'none';
     }
+
+    // Default view: run a first calculation so the tab isn't empty (matches
+    // the mortgage calculator behavior).
+    if (document.getElementById('ci-principal')) compInterest();
 })();
