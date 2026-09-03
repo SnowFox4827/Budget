@@ -213,7 +213,22 @@ export function toggleTransType() {
 
     if (isTransfer) {
         populateTransactionTransfers();
+        updateTransferAmountField();
     }
+}
+
+// When the user picks "Move entire allocation here", no amount is needed —
+// hide the Amount field and drop its `required` flag so the form submits
+// without it. Any other transfer needs an amount, so restore the field.
+export function updateTransferAmountField() {
+    const type = document.getElementById('trans-type').value;
+    const toVal = document.getElementById('trans-to-envelope-select') ? document.getElementById('trans-to-envelope-select').value : '';
+    const amountGroup = document.getElementById('trans-amount-group');
+    const amountInput = document.getElementById('trans-amount');
+    if (!amountGroup || !amountInput) return;
+    const isRelocate = type === 'transfer' && (toVal || '').toString().startsWith('account_');
+    amountGroup.style.display = isRelocate ? 'none' : 'block';
+    amountInput.required = !isRelocate;
 }
 
 // Build the Account + Envelope dropdowns for the transaction modal's Transfer
@@ -279,6 +294,8 @@ export function populateTransactionTransferEnvelopes(side) {
     }
     if (!opts) opts = `<option value="">(no envelopes in this account)</option>`;
     envSelect.innerHTML = opts;
+    // If this is the To side, refresh whether the Amount field is needed.
+    if (side === 'to') updateTransferAmountField();
 }
 
 export async function handleTransactionSubmit(e, fetchDashboard) {
