@@ -29,6 +29,7 @@ import {
     showAddTransactionModal,
     showEditTransactionModal,
     toggleTransType,
+    populateTransactionTransferEnvelopes,
     handleTransactionSubmit,
     resolveOverspend,
     deleteTransaction
@@ -87,6 +88,7 @@ window.deleteAllocation = (id) => deleteAllocation(id, fetchDashboard);
 window.showAddTransactionModal = showAddTransactionModal;
 window.showEditTransactionModal = showEditTransactionModal;
 window.toggleTransType = toggleTransType;
+window.populateTransactionTransferEnvelopes = populateTransactionTransferEnvelopes;
 window.resolveOverspend = () => resolveOverspend(fetchDashboard);
 window.deleteTransaction = (id) => deleteTransaction(id, fetchDashboard);
 

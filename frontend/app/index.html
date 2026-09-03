@@ -443,13 +443,21 @@
                         <input type="date" id="trans-date" required>
                     </div>
                     <div class="form-group" id="trans-from-group" style="display:none">
-                        <label>Move From</label>
-                        <select id="trans-from-select"></select>
+                        <label>Move From — Account</label>
+                        <select id="trans-from-account-select" onchange="populateTransactionTransferEnvelopes('from')"></select>
                     </div>
-                    <div class="form-group" id="trans-to-group" style="display:none">
-                        <label>Move To</label>
-                        <select id="trans-to-select"></select>
-                        <small class="form-hint">Pick an account to relocate the whole allocation, or an envelope to transfer an amount.</small>
+                    <div class="form-group" id="trans-from-env-group" style="display:none">
+                        <label>Move From — Envelope</label>
+                        <select id="trans-from-envelope-select"></select>
+                    </div>
+                    <div class="form-group" id="trans-to-account-group" style="display:none">
+                        <label>Move To — Account</label>
+                        <select id="trans-to-account-select" onchange="populateTransactionTransferEnvelopes('to')"></select>
+                    </div>
+                    <div class="form-group" id="trans-to-env-group" style="display:none">
+                        <label>Move To — Envelope</label>
+                        <select id="trans-to-envelope-select"></select>
+                        <small class="form-hint">Pick an envelope to transfer an amount, or “Move entire allocation here” to relocate the whole envelope.</small>
                     </div>
                     <div class="form-group" id="trans-acc-wrapper">
                         <label>Account / Envelope</label>
