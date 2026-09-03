@@ -1,11 +1,13 @@
 import { state, fmtMoney } from '../state.js';
 
 export function renderSummary() {
-    const totalCash = state.accounts.reduce((acc, a) => acc + a.balance, 0);
-    const totalAlloc = state.allocations.reduce((acc, a) => acc + a.amount_available, 0);
-    const totalTarget = state.allocations.reduce((acc, a) => acc + a.target_amount, 0);
+    const activeAccounts = state.accounts.filter(a => !a.is_deleted);
+    const activeAllocations = state.allocations.filter(al => !al.is_deleted);
+    const totalCash = activeAccounts.reduce((acc, a) => acc + a.balance, 0);
+    const totalAlloc = activeAllocations.reduce((acc, a) => acc + a.amount_available, 0);
+    const totalTarget = activeAllocations.reduce((acc, a) => acc + a.target_amount, 0);
     // Unassigned Dollars live in their own protected account.
-    const unassignedAcc = state.accounts.find(a => a.is_system);
+    const unassignedAcc = activeAccounts.find(a => a.is_system);
     const unallocated = unassignedAcc ? unassignedAcc.balance : (totalCash - totalAlloc);
 
     const cashEl = document.getElementById('sum-networth');

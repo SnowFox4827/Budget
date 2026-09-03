@@ -63,12 +63,14 @@ def manage_allocation(alloc_id):
     conn = get_db()
     cursor = conn.cursor()
     if request.method == 'DELETE':
-        # Return remaining funds to Unassigned Dollars and, if the envelope belongs
-        # to a real account, remove that funding from the account's total as well.
+        # Soft delete: keep the allocation row (and any transaction rows that
+        # point to it) so history is preserved. The envelope is hidden from
+        # dropdowns/listings by is_deleted; its remaining funds return to
+        # Unassigned Dollars just like a hard delete used to.
         cur = cursor.execute('SELECT amount_available, account_id FROM allocations WHERE id = ?', (alloc_id,)).fetchone()
         available = float(cur['amount_available']) if cur else 0.0
         owner = cur['account_id'] if cur else None
-        cursor.execute('DELETE FROM allocations WHERE id = ?', (alloc_id,))
+        cursor.execute('UPDATE allocations SET is_deleted = 1, amount_available = 0 WHERE id = ?', (alloc_id,))
         if available > 0:
             u = _unassigned_id(cursor)
             if u is not None:

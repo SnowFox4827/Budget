@@ -47,8 +47,10 @@ import './components/mortgage-calculator.js';
 export async function fetchDashboard() {
     try {
         const data = await fetchDashboardData();
-        state.accounts = data.accounts || [];
-        state.allocations = data.allocations || [];
+        // Normalize so every item carries is_deleted (older API responses or old
+        // backups may omit it; frontend filters rely on the flag).
+        state.accounts = (data.accounts || []).map(a => ({ is_deleted: 0, ...a }));
+        state.allocations = (data.allocations || []).map(al => ({ is_deleted: 0, ...al }));
         state.transactions = data.transactions || [];
 
         renderSummary();

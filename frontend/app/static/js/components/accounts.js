@@ -3,7 +3,7 @@ import { openModal, closeModal } from '../modals.js';
 import { createAccountApi, updateAccountApi, deleteAccountApi } from '../api.js';
 
 export function renderAccounts() {
-    const sorted = [...state.accounts].sort(compareAccounts);
+    const sorted = [...state.accounts].filter(a => !a.is_deleted).sort(compareAccounts);
     const container = document.getElementById('accounts-container');
     if (container) {
         container.innerHTML = sorted.map(acc => `

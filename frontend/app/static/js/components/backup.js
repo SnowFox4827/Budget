@@ -6,9 +6,9 @@ async function refreshDashboardAfterRestore() {
     try {
         const data = await fetchDashboardData();
         const { state } = await import('../state.js');
-        state.accounts = data.accounts;
-        state.allocations = data.allocations;
-        state.transactions = data.transactions;
+        state.accounts = (data.accounts || []).map(a => ({ is_deleted: 0, ...a }));
+        state.allocations = (data.allocations || []).map(al => ({ is_deleted: 0, ...al }));
+        state.transactions = data.transactions || [];
         const { renderSummary } = await import('./summary.js');
         const { renderAccounts } = await import('./accounts.js');
         const { renderAllocations } = await import('./allocations.js');

@@ -217,20 +217,21 @@ def restore_from_json_dict(data):
 
         for acc in accounts:
             cursor.execute(
-                'INSERT INTO accounts (id, name, balance, is_system) VALUES (?, ?, ?, ?)',
-                (acc.get('id'), acc.get('name'), float(acc.get('balance', 0.0)), int(acc.get('is_system', 0)))
+                'INSERT INTO accounts (id, name, balance, is_system, is_deleted) VALUES (?, ?, ?, ?, ?)',
+                (acc.get('id'), acc.get('name'), float(acc.get('balance', 0.0)), int(acc.get('is_system', 0)), int(acc.get('is_deleted', 0)))
             )
 
         for al in allocations:
             cursor.execute(
-                'INSERT INTO allocations (id, name, amount_available, target_amount, target_date, account_id) VALUES (?, ?, ?, ?, ?, ?)',
+                'INSERT INTO allocations (id, name, amount_available, target_amount, target_date, account_id, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?)',
                 (
                     al.get('id'),
                     al.get('name'),
                     float(al.get('amount_available', 0.0)),
                     float(al.get('target_amount', 0.0)) if al.get('target_amount') is not None else 0.0,
                     al.get('target_date'),
-                    al.get('account_id')
+                    al.get('account_id'),
+                    int(al.get('is_deleted', 0))
                 )
             )
 
@@ -282,6 +283,21 @@ def restore_from_db_file(source_db_path):
         src_conn.backup(dst_conn)
     dst_conn.close()
     src_conn.close()
+
+    # If the restored backup predates soft-delete support, add the columns so the
+    # app (which now SELECTs them) doesn't break.
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    try:
+        c.execute('ALTER TABLE accounts ADD COLUMN is_deleted INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute('ALTER TABLE allocations ADD COLUMN is_deleted INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass
+    conn.commit()
+    conn.close()
 
 @backup_bp.route('/api/backup/restore/upload', methods=['POST'])
 def restore_upload():

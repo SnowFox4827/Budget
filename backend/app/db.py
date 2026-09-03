@@ -26,7 +26,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             balance REAL DEFAULT 0.0,
-            is_system INTEGER DEFAULT 0
+            is_system INTEGER DEFAULT 0,
+            is_deleted INTEGER DEFAULT 0
         )
     ''')
 
@@ -56,9 +57,21 @@ def init_db():
             target_amount REAL DEFAULT 0.0,
             target_date TEXT,
             account_id INTEGER,
+            is_deleted INTEGER DEFAULT 0,
             FOREIGN KEY(account_id) REFERENCES accounts(id) ON DELETE CASCADE
         )
     ''')
+
+    # Migration: add is_deleted to existing accounts / allocations tables
+    # (accounts created before soft-delete support).
+    try:
+        cursor.execute('ALTER TABLE accounts ADD COLUMN is_deleted INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+    try:
+        cursor.execute('ALTER TABLE allocations ADD COLUMN is_deleted INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     
     # Transactions
     cursor.execute('''
