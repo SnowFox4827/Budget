@@ -4,7 +4,7 @@ import { createAllocationApi, updateAllocationApi, deleteAllocationApi } from '.
 
 export function renderAllocations() {
     const filterAccId = document.getElementById('alloc-account-filter') ? document.getElementById('alloc-account-filter').value : '';
-    const filteredAllocations = state.allocations.filter(al => !filterAccId || al.account_id == filterAccId);
+    const filteredAllocations = state.allocations.filter(al => !al.is_deleted && (!filterAccId || al.account_id == filterAccId));
     const sortedAllocations = [...filteredAllocations].sort(compareAllocations);
 
     const container = document.getElementById('allocations-container');
@@ -115,8 +115,8 @@ export function showAddAllocationModal() {
     // Default to the first real (non-Unassigned) account so assigned money lands
     // in a user's account by default, not the hidden Unassigned pool.
     const accSel = document.getElementById('alloc-account-select');
-    const realAcc = state.accounts.find(a => !a.is_system);
-    if (accSel) accSel.value = (realAcc ? realAcc.id : (state.accounts[0] ? state.accounts[0].id : ''));
+    const realAcc = state.accounts.find(a => !a.is_system && !a.is_deleted);
+    if (accSel) accSel.value = (realAcc ? realAcc.id : (state.accounts.find(a => !a.is_deleted) ? state.accounts.find(a => !a.is_deleted).id : ''));
     document.getElementById('allocationModalTitle').textContent = 'New Allocation';
     openModal('allocationModal');
 }

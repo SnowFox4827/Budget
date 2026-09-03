@@ -98,19 +98,21 @@ export function filterTransactions() {
 }
 
 export function populateSelectOptions() {
-    const accOptions = state.accounts.map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
+    const activeAccounts = state.accounts.filter(a => !a.is_deleted);
+    const activeAllocations = state.allocations.filter(al => !al.is_deleted);
+    const accOptions = activeAccounts.map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
     
     // New Allocation must land in a real account, never the protected Unassigned pool.
-    const allocRealOptions = state.accounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
+    const allocRealOptions = activeAccounts.filter(a => !a.is_system).map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
 
     // Build the same grouped Account > Allocation options used by the transfer
     // From/To dropdowns; record the expense/income Account dropdown should match.
-    const unassignedAccSel = state.accounts.find(a => a.is_system);
+    const unassignedAccSel = activeAccounts.find(a => a.is_system);
     const unassignedValueSel = unassignedAccSel ? `unassigned_${unassignedAccSel.id}` : 'unassigned';
     const unassignedOption = `<option value="${unassignedValueSel}">Unassigned Dollars ($${fmtMoney(unassignedAccSel ? unassignedAccSel.balance : 0)})</option>`;
     let groupedAccOptions = unassignedOption;
-    state.accounts.filter(a => !a.is_system).forEach(acc => {
-        const allocs = state.allocations.filter(al => al.account_id == acc.id);
+    activeAccounts.filter(a => !a.is_system).forEach(acc => {
+        const allocs = activeAllocations.filter(al => al.account_id == acc.id);
         groupedAccOptions += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('') + '</optgroup>';
     });
 
@@ -126,13 +128,14 @@ export function populateSelectOptions() {
     if (transAccTransfer) transAccTransfer.innerHTML = accOptions;
     // Exclude the protected Unassigned (system) account from the allocations
     // slicer/filter so it isn't shown as a filterable amount, and list the
-    // accounts alphabetically by name in the filter dropdowns.
-    const realAccountsSorted = state.accounts.filter(a => !a.is_system).sort((a, b) => a.name.localeCompare(b.name));
+    // accounts alphabetically by name in the filter dropdowns. Soft-deleted
+    // accounts and allocations are hidden too (their history stays visible).
+    const realAccountsSorted = activeAccounts.filter(a => !a.is_system).sort((a, b) => a.name.localeCompare(b.name));
     const realAccOptions = realAccountsSorted.map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`).join('');
     if (allocFilter) allocFilter.innerHTML = '<option value="">All Accounts</option>' + realAccountsSorted.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
     if (sliceAcc) sliceAcc.innerHTML = '<option value="">All Accounts</option>' + realAccOptions;
 
-    const allocOptions = state.allocations.map(al => `<option value="${al.id}">${al.name}</option>`).join('');
+    const allocOptions = activeAllocations.map(al => `<option value="${al.id}">${al.name}</option>`).join('');
     if (sliceAlloc) sliceAlloc.innerHTML = '<option value="">All Allocations</option>' + allocOptions;
 }
 
@@ -158,7 +161,7 @@ export function showEditTransactionModal(id) {
     // The Account dropdown now uses the grouped Account > Allocation options
     // (same as transfers): prefer selecting the envelope when the transaction
     // has one, otherwise select the account itself (or Unassigned Dollars).
-    const unassignedAccEdit = state.accounts.find(a => a.is_system);
+    const unassignedAccEdit = state.accounts.find(a => a.is_system && !a.is_deleted);
     let accSelValueEdit = t.allocation_id || t.account_id || '';
     if (unassignedAccEdit && t.account_id == unassignedAccEdit.id && !t.allocation_id) {
         accSelValueEdit = `unassigned_${unassignedAccEdit.id}`;
@@ -176,7 +179,9 @@ export function toggleTransType() {
     const descGroup = document.getElementById('trans-desc-group');
     const dateGroup = document.getElementById('trans-date-group');
     const fromGroup = document.getElementById('trans-from-group');
-    const toGroup = document.getElementById('trans-to-group');
+    const fromEnvGroup = document.getElementById('trans-from-env-group');
+    const toAccountGroup = document.getElementById('trans-to-account-group');
+    const toEnvGroup = document.getElementById('trans-to-env-group');
     const show = (el, on) => { if (el) el.style.display = on ? 'block' : 'none'; };
 
     // Fields hidden for a given type must NOT carry `required`, or the browser
@@ -191,54 +196,121 @@ export function toggleTransType() {
     const isIncome = type === 'income';
     const amountGroup = document.getElementById('trans-amount-group');
     show(accWrapper, !isIncome && !isTransfer);
-    show(descGroup, !isIncome && !isTransfer);
+    show(descGroup, !isTransfer);
     show(dateGroup, !isTransfer);
     show(fromGroup, isTransfer);
-    show(toGroup, isTransfer);
+    show(fromEnvGroup, isTransfer);
+    show(toAccountGroup, isTransfer);
+    show(toEnvGroup, isTransfer);
     show(amountGroup, true);
 
     setRequired('trans-account-select', !isIncome && !isTransfer);
-    setRequired('trans-desc', !isIncome && !isTransfer);
+    setRequired('trans-desc', !isTransfer);
     setRequired('trans-date', !isTransfer);
     setRequired('trans-amount', true);
-    setRequired('trans-from-select', isTransfer);
-    setRequired('trans-to-select', isTransfer);
+    setRequired('trans-from-envelope-select', isTransfer);
+    setRequired('trans-to-envelope-select', isTransfer);
 
     if (isTransfer) {
         populateTransactionTransfers();
+        updateTransferAmountField();
     }
 }
 
-// Build cross-account From/To options for the transaction modal's Transfer type.
-export function populateTransactionTransfers() {
-    const fromSelect = document.getElementById('trans-from-select');
-    const toSelect = document.getElementById('trans-to-select');
-    if (!fromSelect || !toSelect) return;
-    const unassignedAcc = state.accounts.find(a => a.is_system);
-    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
-    const unassignedOption = `<option value="${unassignedValue}">Unassigned Dollars ($${fmtMoney(unassignedAcc ? unassignedAcc.balance : 0)})</option>`;
-
-    // From = allocations only (the envelope to transfer from / relocate).
-    let groupedFrom = unassignedOption;
-    state.accounts.filter(a => !a.is_system).forEach(acc => {
-        const allocs = state.allocations.filter(al => al.account_id == acc.id);
-        groupedFrom += `<optgroup label="${acc.name}">` + allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('') + '</optgroup>';
-    });
-    fromSelect.innerHTML = groupedFrom;
-
-    // To = accounts (relocate the whole allocation) + allocations (transfer an amount).
-    let groupedTo = unassignedOption;
-    state.accounts.filter(a => !a.is_system).forEach(acc => {
-        const allocs = state.allocations.filter(al => al.account_id == acc.id);
-        const accOption = `<option value="account_${acc.id}">${acc.name} — move allocation here</option>`;
-        const envips = allocs.map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`).join('');
-        groupedTo += accOption + (envips ? `<optgroup label="${acc.name} envelopes">` + envips + '</optgroup>' : '');
-    });
-    toSelect.innerHTML = groupedTo;
+// When the user picks "Move entire allocation here", no amount is needed —
+// hide the Amount field and drop its `required` flag so the form submits
+// without it. Any other transfer needs an amount, so restore the field.
+export function updateTransferAmountField() {
+    const type = document.getElementById('trans-type').value;
+    const toVal = document.getElementById('trans-to-envelope-select') ? document.getElementById('trans-to-envelope-select').value : '';
+    const amountGroup = document.getElementById('trans-amount-group');
+    const amountInput = document.getElementById('trans-amount');
+    if (!amountGroup || !amountInput) return;
+    const isRelocate = type === 'transfer' && (toVal || '').toString().startsWith('account_');
+    amountGroup.style.display = isRelocate ? 'none' : 'block';
+    amountInput.required = !isRelocate;
 }
 
-export function populateTransactionTransferEnvelopes() {
-    populateTransactionTransfers();
+// Build the Account + Envelope dropdowns for the transaction modal's Transfer
+// type. Both "Move From" and "Move To" get their own Account box and an
+// Envelope box that only lists envelopes inside the selected account.
+export function populateTransactionTransfers() {
+    const fromAccSelect = document.getElementById('trans-from-account-select');
+    const toAccSelect = document.getElementById('trans-to-account-select');
+    if (!fromAccSelect || !toAccSelect) return;
+    const activeAccounts = state.accounts.filter(a => !a.is_deleted);
+    const unassignedAcc = activeAccounts.find(a => a.is_system);
+    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
+
+    // Unassigned Dollars first, then real accounts alphabetically by name.
+    let accountOptions = `<option value="${unassignedValue}">Unassigned Dollars ($${fmtMoney(unassignedAcc ? unassignedAcc.balance : 0)})</option>`;
+    accountOptions += activeAccounts
+        .filter(a => !a.is_system)
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(a => `<option value="${a.id}">${a.name} ($${fmtMoney(a.balance)})</option>`)
+        .join('');
+
+    fromAccSelect.innerHTML = accountOptions;
+    toAccSelect.innerHTML = accountOptions;
+    // Default the To side to the first real account (not the Unassigned pool)
+    // so the "Move entire allocation here" option is available by default.
+    const firstReal = activeAccounts
+        .filter(a => !a.is_system)
+        .sort((a, b) => a.name.localeCompare(b.name))[0];
+    if (firstReal) toAccSelect.value = String(firstReal.id);
+    populateTransactionTransferEnvelopes('from');
+    populateTransactionTransferEnvelopes('to');
+}
+
+// Fill the envelope dropdown for one side ('from' or 'to') based on the
+// account selected in that side's Account box. On the "To" side, after the
+// account's envelopes, keep the ability to relocate the WHOLE allocation to
+// the chosen account.
+export function populateTransactionTransferEnvelopes(side) {
+    const accSelect = document.getElementById(`trans-${side}-account-select`);
+    const envSelect = document.getElementById(`trans-${side}-envelope-select`);
+    if (!accSelect || !envSelect) return;
+    const activeAccounts = state.accounts.filter(a => !a.is_deleted);
+    const activeAllocations = state.allocations.filter(al => !al.is_deleted);
+    const unassignedAcc = activeAccounts.find(a => a.is_system);
+    const unassignedValue = unassignedAcc ? `unassigned_${unassignedAcc.id}` : 'unassigned';
+
+    const accVal = String(accSelect.value || unassignedValue);
+    if (accVal.startsWith('unassigned')) {
+        let opts = `<option value="${unassignedValue}">Unassigned Dollars ($${fmtMoney(unassignedAcc ? unassignedAcc.balance : 0)})</option>`;
+        if (unassignedAcc) {
+            opts += activeAllocations
+                .filter(al => String(al.account_id) === String(unassignedAcc.id))
+                .map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`)
+                .join('');
+        }
+        envSelect.innerHTML = opts;
+        return;
+    }
+
+    const acc = activeAccounts.find(a => String(a.id) === accVal);
+    const accountId = acc ? acc.id : accVal;
+    let opts = '';
+    if (side === 'to') {
+        // Default: relocating the whole allocation to this account. It comes
+        // first and is auto-selected so no amount is needed.
+        opts = `<option value="account_${accountId}">— Move entire allocation here —</option>`;
+    }
+    opts += activeAllocations
+        .filter(al => String(al.account_id) === String(accountId))
+        .map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`)
+        .join('');
+    if (!opts) opts = `<option value="">(no envelopes in this account)</option>`;
+    envSelect.innerHTML = opts;
+    // Auto-select the relocate option on the To side for a real account.
+    if (side === 'to') {
+        const relocateVal = `account_${accountId}`;
+        if ([...envSelect.options].some(o => o.value === relocateVal)) {
+            envSelect.value = relocateVal;
+        }
+    }
+    // If this is the To side, refresh whether the Amount field is needed.
+    if (side === 'to') updateTransferAmountField();
 }
 
 export async function handleTransactionSubmit(e, fetchDashboard) {
@@ -250,8 +322,13 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
     //  - picking an account ("account_<id>") relocates the WHOLE allocation there;
     //  - picking an envelope or Unassigned transfers just the typed amount.
     if (type === 'transfer') {
-        const fromVal = document.getElementById('trans-from-select').value;
-        const toVal = document.getElementById('trans-to-select').value;
+        const fromVal = document.getElementById('trans-from-envelope-select').value;
+        const toVal = document.getElementById('trans-to-envelope-select').value;
+
+        if (!fromVal) {
+            alert('Pick a source envelope in "Move From — Envelope" first.');
+            return;
+        }
 
         // Relocate the whole allocation to another account.
         if ((toVal || '').toString().startsWith('account_')) {
@@ -296,7 +373,7 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
     }
 
     const isIncome = type === 'income';
-    const unassignedAcc = state.accounts.find(a => a.is_system);
+    const unassignedAcc = state.accounts.find(a => a.is_system && !a.is_deleted);
     // The Account dropdown now uses the same grouped Account > Allocation options
     // as the transfer From/To dropdowns: a selection may be an allocation (envelope),
     // a plain account, or the Unassigned Dollars pool (value "unassigned_<id>").
@@ -331,7 +408,7 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
         const msgEl = document.getElementById('overspend-msg');
         if (msgEl) msgEl.textContent = result.data.message;
         const accId = uiState.pendingTxData.account_id;
-        const allocs = state.allocations.filter(al => al.account_id == accId && al.id != uiState.pendingTxData.allocation_id);
+        const allocs = state.allocations.filter(al => !al.is_deleted && al.account_id == accId && al.id != uiState.pendingTxData.allocation_id);
 
         const coverSelect = document.getElementById('overspend-cover-select');
         if (coverSelect) {
