@@ -252,6 +252,12 @@ export function populateTransactionTransfers() {
 
     fromAccSelect.innerHTML = accountOptions;
     toAccSelect.innerHTML = accountOptions;
+    // Default the To side to the first real account (not the Unassigned pool)
+    // so the "Move entire allocation here" option is available by default.
+    const firstReal = activeAccounts
+        .filter(a => !a.is_system)
+        .sort((a, b) => a.name.localeCompare(b.name))[0];
+    if (firstReal) toAccSelect.value = String(firstReal.id);
     populateTransactionTransferEnvelopes('from');
     populateTransactionTransferEnvelopes('to');
 }
@@ -284,16 +290,25 @@ export function populateTransactionTransferEnvelopes(side) {
 
     const acc = activeAccounts.find(a => String(a.id) === accVal);
     const accountId = acc ? acc.id : accVal;
-    let opts = activeAllocations
+    let opts = '';
+    if (side === 'to') {
+        // Default: relocating the whole allocation to this account. It comes
+        // first and is auto-selected so no amount is needed.
+        opts = `<option value="account_${accountId}">— Move entire allocation here —</option>`;
+    }
+    opts += activeAllocations
         .filter(al => String(al.account_id) === String(accountId))
         .map(al => `<option value="${al.id}">${al.name} ($${fmtMoney(al.amount_available)})</option>`)
         .join('');
-    if (side === 'to') {
-        // Relocating the whole allocation to this account stays possible.
-        opts += `<option value="account_${accountId}">— Move entire allocation here —</option>`;
-    }
     if (!opts) opts = `<option value="">(no envelopes in this account)</option>`;
     envSelect.innerHTML = opts;
+    // Auto-select the relocate option on the To side for a real account.
+    if (side === 'to') {
+        const relocateVal = `account_${accountId}`;
+        if ([...envSelect.options].some(o => o.value === relocateVal)) {
+            envSelect.value = relocateVal;
+        }
+    }
     // If this is the To side, refresh whether the Amount field is needed.
     if (side === 'to') updateTransferAmountField();
 }
