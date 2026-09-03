@@ -196,7 +196,7 @@ export function toggleTransType() {
     const isIncome = type === 'income';
     const amountGroup = document.getElementById('trans-amount-group');
     show(accWrapper, !isIncome && !isTransfer);
-    show(descGroup, !isIncome && !isTransfer);
+    show(descGroup, !isTransfer);
     show(dateGroup, !isTransfer);
     show(fromGroup, isTransfer);
     show(fromEnvGroup, isTransfer);
@@ -205,7 +205,7 @@ export function toggleTransType() {
     show(amountGroup, true);
 
     setRequired('trans-account-select', !isIncome && !isTransfer);
-    setRequired('trans-desc', !isIncome && !isTransfer);
+    setRequired('trans-desc', !isTransfer);
     setRequired('trans-date', !isTransfer);
     setRequired('trans-amount', true);
     setRequired('trans-from-envelope-select', isTransfer);
