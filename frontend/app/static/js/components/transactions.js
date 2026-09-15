@@ -223,7 +223,7 @@ export function toggleTransType() {
     const isTransfer = type === 'transfer';
     const isIncome = type === 'income';
     const amountGroup = document.getElementById('trans-amount-group');
-    show(accWrapper, !isIncome && !isTransfer);
+    show(accWrapper, !isTransfer);
     show(descGroup, !isTransfer);
     show(dateGroup, !isTransfer);
     show(fromGroup, isTransfer);
@@ -232,7 +232,7 @@ export function toggleTransType() {
     show(toEnvGroup, isTransfer);
     show(amountGroup, true);
 
-    setRequired('trans-account-pick', !isIncome && !isTransfer);
+    setRequired('trans-account-pick', !isTransfer);
     setRequired('trans-allocation-pick', false);
     setRequired('trans-desc', !isTransfer);
     setRequired('trans-date', !isTransfer);
@@ -401,13 +401,12 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
         return;
     }
 
-    const isIncome = type === 'income';
     // Two-dropdown resolution: Account picker gives the account, Allocation
     // picker (scoped to that account) gives the envelope, or "(none)" to log
     // against the account itself / Unassigned Dollars pool.
     const pickedAlloc = state.allocations.find(al => al.id == document.getElementById('trans-allocation-pick').value);
     const selectedAccountId = document.getElementById('trans-account-pick').value;
-    const selectedAllocId = (isIncome || !pickedAlloc) ? '' : pickedAlloc.id;
+    const selectedAllocId = !pickedAlloc ? '' : pickedAlloc.id;
     uiState.pendingTxData = {
         id: id || null,
         description: document.getElementById('trans-desc').value,
