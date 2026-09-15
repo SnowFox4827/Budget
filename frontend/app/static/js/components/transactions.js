@@ -204,6 +204,7 @@ export function showEditTransactionModal(id) {
 export function toggleTransType() {
     const type = document.getElementById('trans-type').value;
     const accWrapper = document.getElementById('trans-acc-wrapper');
+    const allocWrapper = document.getElementById('trans-alloc-wrapper');
     const descGroup = document.getElementById('trans-desc-group');
     const dateGroup = document.getElementById('trans-date-group');
     const fromGroup = document.getElementById('trans-from-group');
@@ -224,6 +225,7 @@ export function toggleTransType() {
     const isIncome = type === 'income';
     const amountGroup = document.getElementById('trans-amount-group');
     show(accWrapper, !isTransfer);
+    show(allocWrapper, !isTransfer);
     show(descGroup, !isTransfer);
     show(dateGroup, !isTransfer);
     show(fromGroup, isTransfer);
