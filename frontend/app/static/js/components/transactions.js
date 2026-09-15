@@ -224,8 +224,8 @@ export function toggleTransType() {
     const isTransfer = type === 'transfer';
     const isIncome = type === 'income';
     const amountGroup = document.getElementById('trans-amount-group');
-    show(accWrapper, !isTransfer);
-    show(allocWrapper, !isTransfer && !isIncome);
+    show(accWrapper, !isIncome && !isTransfer);
+    show(allocWrapper, !isIncome && !isTransfer);
     show(descGroup, !isTransfer);
     show(dateGroup, !isTransfer);
     show(fromGroup, isTransfer);
@@ -234,8 +234,8 @@ export function toggleTransType() {
     show(toEnvGroup, isTransfer);
     show(amountGroup, true);
 
-    setRequired('trans-account-pick', !isTransfer);
-    setRequired('trans-allocation-pick', !isTransfer && !isIncome);
+    setRequired('trans-account-pick', !isIncome && !isTransfer);
+    setRequired('trans-allocation-pick', !isIncome && !isTransfer);
     setRequired('trans-desc', !isTransfer);
     setRequired('trans-date', !isTransfer);
     setRequired('trans-amount', true);
@@ -406,9 +406,11 @@ export async function handleTransactionSubmit(e, fetchDashboard) {
     // Two-dropdown resolution: Account picker gives the account, Allocation
     // picker (scoped to that account) gives the envelope, or "(none)" to log
     // against the account itself / Unassigned Dollars pool.
+    // Income skips both pickers — the backend routes it into Unassigned Dollars.
+    const isIncome = type === 'income';
     const pickedAlloc = state.allocations.find(al => al.id == document.getElementById('trans-allocation-pick').value);
-    const selectedAccountId = document.getElementById('trans-account-pick').value;
-    const selectedAllocId = !pickedAlloc ? '' : pickedAlloc.id;
+    const selectedAccountId = isIncome ? 'unassigned' : document.getElementById('trans-account-pick').value;
+    const selectedAllocId = isIncome || !pickedAlloc ? '' : pickedAlloc.id;
     uiState.pendingTxData = {
         id: id || null,
         description: document.getElementById('trans-desc').value,
