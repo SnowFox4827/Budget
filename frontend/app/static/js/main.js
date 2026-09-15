@@ -30,6 +30,7 @@ import {
     showEditTransactionModal,
     toggleTransType,
     populateTransactionTransferEnvelopes,
+    populateTransAllocations,
     updateTransferAmountField,
     handleTransactionSubmit,
     resolveOverspend,
@@ -90,6 +91,7 @@ window.showAddTransactionModal = showAddTransactionModal;
 window.showEditTransactionModal = showEditTransactionModal;
 window.toggleTransType = toggleTransType;
 window.populateTransactionTransferEnvelopes = populateTransactionTransferEnvelopes;
+window.populateTransAllocations = populateTransAllocations;
 window.updateTransferAmountField = updateTransferAmountField;
 window.resolveOverspend = () => resolveOverspend(fetchDashboard);
 window.deleteTransaction = (id) => deleteTransaction(id, fetchDashboard);
